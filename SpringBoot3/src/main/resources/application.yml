@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: SpringBoot3
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: 'jdbc:mysql://localhost:3306/luochen?createDatabaseIfNotExist=true&useSSL=false'
+    username: root
+    password: 123456
+  #session失效时间
+  session:
+    timeout: 86400
+  mvc:
+    path match:
+      matching-strategy: ant_path_matcher
+# springdoc-openapi项目配置
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  group-configs:
+    - group: '接口文档测试'
+      paths-to-match: '/**'
+      packages-to-scan: src/main/java/org/example/SpringBoot3/controller
+server:
+  port: 8080
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: false
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: isDelete # 全局逻辑删除字段名
+      logic-delete-value: 1 # 逻辑已删除值
+      logic-not-delete-value: 0 # 逻辑未删除值
