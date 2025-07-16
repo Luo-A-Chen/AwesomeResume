@@ -1,5 +1,5 @@
 // TODO 放到服务器类去
-import '../../api/net_requester.dart';
+import '../../api/net_request.dart';
 
 class VideoUrls {
   VideoUrls._();
@@ -19,7 +19,7 @@ class VideoUrls {
         'bvid': bvid,
       };
 
-      final res = await NetRequester.get(
+      final res = await NetRequest.get(
         'https://api.bilibili.com/x/web-interface/view',
         queryParams: queryParams,
         headers: headers,
@@ -60,7 +60,7 @@ class VideoUrls {
         'fourk': '1',
       };
 
-      final res = await NetRequester.get(
+      final res = await NetRequest.get(
         'https://api.bilibili.com/x/player/playurl',
         queryParams: queryParams,
         headers: headers,

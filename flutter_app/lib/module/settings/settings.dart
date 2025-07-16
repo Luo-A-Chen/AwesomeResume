@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import '../../api/local_storage.dart';
-import 'server.dart';
+import '../../server/server.dart';
 
 class Settings {
   Server? _server;
@@ -15,8 +15,8 @@ class Settings {
             .firstWhere((element) => element.name == json['server']);
 
   Future<void> setServer(Server server) async {
-    _server = server;
-    _server!.initNetRequester();
+    _server = server; // 更新服务器
+    _server!.initNetRequester(); // 初始化网络请求器
     saveToLocal();
   }
 

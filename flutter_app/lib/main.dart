@@ -7,8 +7,7 @@ import 'module/settings/settings.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Settings.loadFromLocal(); // 从本地加载设置
-  await Settings.instance.server!.initNetRequester(); // 初始化网络请求器
-
+  await Settings.instance.server?.initNetRequester(); // 初始化网络请求器
   runApp(const MyApp());
 }
 

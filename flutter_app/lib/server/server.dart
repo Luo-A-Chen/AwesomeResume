@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 
-import '../../api/net_requester.dart';
+import '../api/net_request.dart';
 
 abstract class Server {
   final String name;
@@ -50,11 +50,11 @@ class BlblServer extends Server {
 
   @override
   Future<void> initNetRequester() async {
-    NetRequester.cleanOptions();
-    final res = await NetRequester.get('https://www.bilibili.com/');
+    NetRequest.cleanOptions();
+    final res = await NetRequest.get('https://www.bilibili.com/');
     final cookie = res?.headers['set-cookie']?.join(';');
     // 设置baseUrl和cookie
-    NetRequester.setOptions(BaseOptions(
+    NetRequest.setOptions(BaseOptions(
       baseUrl: baseUrl,
       headers: {'cookie': cookie},
     ));

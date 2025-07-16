@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 
-class NetRequester {
+class NetRequest {
   static final _dio = Dio();
 
   static void cleanOptions() => _dio.options = BaseOptions();
@@ -8,7 +8,7 @@ class NetRequester {
   static Future<Response?> get(
     String? url, {
     Map<String, dynamic>? queryParams,
-    Map<String, String> headers = const {},
+    Map<String, String>? headers,
   }) async {
     if (url == null) return null;
     final response = await _dio.get(url,

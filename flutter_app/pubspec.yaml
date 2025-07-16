@@ -23,6 +23,7 @@ dependencies:
   dio: ^5.8.0+1 # 网络请求
   loading_more_list: ^7.1.0 # 上拉加载更多
   cached_network_image: ^3.4.1
+  timeago: ^3.7.1
 
 dependency_overrides:
   path_provider:
