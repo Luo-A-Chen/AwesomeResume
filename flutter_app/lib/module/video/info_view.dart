@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app/api/nav_extension.dart';
 import 'package:video_player/video_player.dart';
 
-import '../../api/net_request.dart';
+import '../../api/http.dart';
 import 'video_page.dart';
 import 'video_response.dart';
 
@@ -32,7 +32,7 @@ class _InfoViewState extends State<InfoView> {
   }
 
   void _getVideos() async {
-    final res = await NetRequest.get(
+    final res = await Http.get(
         '/web-interface/archive/related?aid=${widget.avid}');
     if (res == null) return;
     setState(() {

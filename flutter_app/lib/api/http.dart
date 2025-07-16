@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 
-class NetRequest {
+class Http {
   static final _dio = Dio();
 
   static void cleanOptions() => _dio.options = BaseOptions();

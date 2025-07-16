@@ -1,10 +1,10 @@
 import 'package:dio/dio.dart';
 
-import '../../api/net_request.dart';
+import '../../api/http.dart';
 
 class SearchService {
   static Future<Response?> searchAll(String keyword) async {
-    final res = await NetRequest.get(
+    final res = await Http.get(
       'https://api.bilibili.com/x/web-interface/wbi/search/all/v2',
       queryParams: {'keyword': keyword},
     );
@@ -20,7 +20,7 @@ class SearchService {
     String tids = '0',
     required String searchType,
   }) async {
-    final res = await NetRequest.get(
+    final res = await Http.get(
       'https://api.bilibili.com/x/web-interface/wbi/search/type',
       queryParams: {
         'keyword': keyword,

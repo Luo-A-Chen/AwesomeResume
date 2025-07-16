@@ -20,22 +20,23 @@ class _MainPageState extends State<MainPage> {
 
   final _navItems = [
     PageItem(title: '首页', icon: Icons.home_outlined, page: const HomePage()),
-    PageItem(title: '关注', icon: Icons.wind_power_outlined, page: const FollowPage()),
+    PageItem(
+        title: '关注', icon: Icons.wind_power_outlined, page: const FollowPage()),
     PageItem(title: '我的', icon: Icons.person_outline, page: const MinePage()),
   ];
 
-  var server = Settings.instance.server;
+  var requester = Settings.instance.requester;
 
   Future<void> _goSelectServer() async {
     await context.push(ServerSelectPage());
     setState(() {
-      server = Settings.instance.server;
+      requester = Settings.instance.requester;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (server == null) return noServerView();
+    if (requester == null) return _selectServerView();
     return Scaffold(
       body: PageView(
         controller: _pageController,
@@ -58,7 +59,7 @@ class _MainPageState extends State<MainPage> {
     );
   }
 
-  Widget noServerView() {
+  Widget _selectServerView() {
     return Scaffold(
       body: Center(
         child: Column(

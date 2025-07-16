@@ -168,6 +168,15 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  fluttertoast:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: b904d5000b30d31d0d67fbd96ac53e3320d2e222
+      url: "https://gitcode.com/openharmony-sig/flutter_fluttertoast.git"
+    source: git
+    version: "8.2.2"
   html:
     dependency: transitive
     description:

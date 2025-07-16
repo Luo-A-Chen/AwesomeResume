@@ -1,24 +1,30 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
+
 import '../../api/local_storage.dart';
-import '../../server/server.dart';
+import '../../requester/requester.dart';
 
 class Settings {
-  Server? _server;
-  Server? get server => _server;
+  final ValueNotifier<Key> appKeyNotifier = ValueNotifier(Key('app'));
+  Requester? _requester;
+  Requester? get requester => _requester;
 
   static Settings instance = Settings._();
   Settings._();
 
   Settings._fromJson(Map json)
-      : _server = Server.values
-            .firstWhere((element) => element.name == json['server']);
+      : _requester = Requester.values
+            .firstWhere((element) => element.serverName == json['server']);
 
-  Future<void> setServer(Server server) async {
-    _server = server; // 更新服务器
-    _server!.initNetRequester(); // 初始化网络请求器
+  Future<void> changeServer(Requester requester) async {
+    _requester = requester; // 更新请求器
+    await _requester!.initHttpCinfig(); // 初始化网络请求配置
+    restartApp(); // 重启app
     saveToLocal();
   }
+
+  void restartApp() => appKeyNotifier.value = UniqueKey();
 
   /// 只在app启动时调用一次
   static loadFromLocal() async {
@@ -35,7 +41,7 @@ class Settings {
 
   Map toJson() {
     return {
-      'server': server?.name,
+      'server': requester?.serverName,
     };
   }
 }
