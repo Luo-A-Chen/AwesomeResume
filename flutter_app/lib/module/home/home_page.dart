@@ -96,7 +96,7 @@ class _HomePageState extends State<HomePage>
                 Expanded(
                   child: GestureDetector(
                     onTap: () =>
-                        context.push(const SearchPage(initialQuery: '灵笼第二季')),
+                        context.push(const SearchPage(initialKeyword: '灵笼第二季')),
                     child: Text(
                       '灵笼第二季',
                       style: TextStyle(color: Colors.grey[600], fontSize: 14),

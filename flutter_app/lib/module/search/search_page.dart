@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../settings/settings.dart';
 import 'search_model.dart';
-import 'search_service.dart';
 
 class SearchPage extends StatefulWidget {
-  final String initialQuery;
+  final String initialKeyword;
 
-  const SearchPage({super.key, this.initialQuery = ''});
+  const SearchPage({super.key, this.initialKeyword = ''});
 
   @override
   State<SearchPage> createState() => _SearchPageState();
@@ -17,12 +17,14 @@ class _SearchPageState extends State<SearchPage>
   late TextEditingController _searchController;
   List<SearchResult> _searchResults = [];
   bool _isLoading = false;
-  String _currentQuery = '';
+  String _currentKeyword = '';
   late TabController _tabController;
+  final _settings = Settings.instance;
 
-  final List<String> _tabs = ['综合', '番剧', '直播', '用户', '影视', '图文'];
-  final Map<String, String> _tabSearchType = {
-    '综合': '',
+// TODO 实现综合搜索
+  final List<String> _tabs = ['视频', '番剧', '直播', '用户', '影视', '图文'];
+  final Map<String, String?> _tabSearchType = {
+    '视频': 'video',
     '番剧': 'media_bangumi',
     '直播': 'live',
     '用户': 'user',
@@ -33,14 +35,13 @@ class _SearchPageState extends State<SearchPage>
   @override
   void initState() {
     super.initState();
-    _searchController = TextEditingController(text: widget.initialQuery);
+    _searchController = TextEditingController(text: widget.initialKeyword);
     _tabController = TabController(length: _tabs.length, vsync: this);
     _tabController.addListener(_handleTabSelection);
-
-    if (widget.initialQuery.isNotEmpty) {
-      _currentQuery = widget.initialQuery;
+    if (widget.initialKeyword.isNotEmpty) {
+      _currentKeyword = widget.initialKeyword;
       _performSearch(
-          widget.initialQuery, _tabSearchType[_tabs[_tabController.index]]!);
+          widget.initialKeyword, _tabSearchType[_tabs[_tabController.index]]);
     }
   }
 
@@ -54,35 +55,22 @@ class _SearchPageState extends State<SearchPage>
   void _handleTabSelection() {
     if (_tabController.indexIsChanging) return;
     final index = _tabController.index;
-    _performSearch(_currentQuery, _tabSearchType[_tabs[index]]!);
+    _performSearch(_currentKeyword, _tabSearchType[_tabs[index]]);
   }
 
-  Future<void> _performSearch(String query, String searchType) async {
+  Future<void> _performSearch(String keyword, String? searchType) async {
     setState(() {
       _isLoading = true;
-      _currentQuery = query;
+      _currentKeyword = keyword;
     });
-    try {
-      final res = await (searchType.isEmpty
-          ? SearchService.searchAll(query)
-          : SearchService.searchType(query, searchType: searchType));
-      if (res == null) return;
-      final searchResponse = SearchResponse.fromJson(res.data);
-      setState(() {
-        _searchResults = searchResponse.data.result
-            .where((item) => item.type == searchType)
-            .toList();
-      });
-    } catch (e) {
-      print('搜索失败: $e');
-      setState(() {
-        _searchResults = [];
-      });
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
+    final requester = _settings.requester!.searchRequester;
+    final results = await (searchType == null
+        ? requester.getAllSearchResults()
+        : requester.getTypeSearchResults(keyword, searchType: searchType));
+    setState(() {
+      _searchResults = results;
+      _isLoading = false;
+    });
   }
 
   @override
@@ -94,12 +82,11 @@ class _SearchPageState extends State<SearchPage>
           _buildFilterTabs(),
           Expanded(
             child: TabBarView(
-              physics: const NeverScrollableScrollPhysics(),
               controller: _tabController,
               children: _tabs.map((tabName) {
                 return _isLoading
                     ? const Center(child: CircularProgressIndicator())
-                    : _searchResults.isEmpty && _currentQuery.isNotEmpty
+                    : _searchResults.isEmpty && _currentKeyword.isNotEmpty
                         ? const Center(child: Text('暂无搜索结果，换个词试试吧'))
                         : _buildSearchResults();
               }).toList(),
@@ -130,7 +117,7 @@ class _SearchPageState extends State<SearchPage>
               ),
               onSubmitted: (query) {
                 _performSearch(
-                    query, _tabSearchType[_tabs[_tabController.index]]!);
+                    query, _tabSearchType[_tabs[_tabController.index]]);
               },
             ),
           ),
@@ -143,7 +130,7 @@ class _SearchPageState extends State<SearchPage>
           TextButton(
             onPressed: () {
               _performSearch(_searchController.text,
-                  _tabSearchType[_tabs[_tabController.index]]!);
+                  _tabSearchType[_tabs[_tabController.index]]);
             },
             child: const Text('搜索'),
           ),
@@ -172,6 +159,7 @@ class _SearchPageState extends State<SearchPage>
         mainAxisSpacing: 8.0,
         childAspectRatio: 0.8,
       ),
+      // TODO 筛选类别
       itemCount: _searchResults.length,
       itemBuilder: (context, index) {
         final item = _searchResults[index];

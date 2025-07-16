@@ -19,7 +19,7 @@ class Settings {
 
   Future<void> changeServer(Requester requester) async {
     _requester = requester; // 更新请求器
-    await _requester!.initHttpCinfig(); // 初始化网络请求配置
+    await _requester!.cinfigHttp(); // 初始化网络请求配置
     restartApp(); // 重启app
     saveToLocal();
   }

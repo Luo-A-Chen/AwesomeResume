@@ -5,10 +5,11 @@ class _DefaultRequester extends Requester {
       : super(
           serverName: '官方（开发中）',
           videoRequester: _DefaultVideoRequester(),
+          searchRequester: _DefaultSearchRequester(),
         );
 
   @override
-  Future<void> initHttpCinfig() {
+  Future<void> cinfigHttp() {
     // TODO: implement initNetRequester
     return Future.value();
   }

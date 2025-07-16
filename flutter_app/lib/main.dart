@@ -3,13 +3,15 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 import 'api/app_toast.dart';
+import 'api/local_storage.dart';
 import 'main_page.dart';
 import 'module/settings/settings.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await LocalStorage.initSP(); // 必须在运行软件前初始化本地存储
   await Settings.loadFromLocal(); // 从本地加载设置
-  await Settings.instance.requester?.initHttpCinfig(); // 初始化网络请求
+  await Settings.instance.requester?.cinfigHttp(); // 初始化网络请求
   final app = RestartableApp(keyNotifier: Settings.instance.appKeyNotifier);
   runApp(app);
 }

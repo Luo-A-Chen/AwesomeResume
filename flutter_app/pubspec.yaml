@@ -28,6 +28,7 @@ dependencies:
   loading_more_list: ^7.1.0 # 上拉加载更多
   cached_network_image: ^3.4.1 # 图片缓存
   timeago: ^3.7.1 # 时间
+  crypto: ^3.0.6
 
 dependency_overrides:
   path_provider:
