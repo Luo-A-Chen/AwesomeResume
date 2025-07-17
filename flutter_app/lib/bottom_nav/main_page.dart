@@ -3,7 +3,7 @@ import 'package:flutter_app/api/nav_extension.dart';
 
 import '../follow/follow_page.dart';
 import '../home/home_page.dart';
-import '../mine/mine_page.dart';
+import '../user/mine_page.dart';
 import '../settings/server_select_page.dart';
 import '../settings/settings.dart';
 
