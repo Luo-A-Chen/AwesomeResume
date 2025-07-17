@@ -24,7 +24,7 @@ class VideoUrls {
         queryParams: queryParams,
         headers: headers,
       );
-      return res?.data['data'];
+      return res.data['data'];
     } catch (e) {
       print('获取视频信息失败: $e');
       rethrow;
@@ -65,7 +65,7 @@ class VideoUrls {
         queryParams: queryParams,
         headers: headers,
       );
-      return res?.data;
+      return res.data;
     } catch (e) {
       print('获取视频流URL失败: $e');
       rethrow;

@@ -5,12 +5,11 @@ class Http {
 
   static void cleanOptions() => _dio.options = BaseOptions();
 
-  static Future<Response?> get(
-    String? url, {
+  static Future<Response> get(
+    String url, {
     Map<String, dynamic>? queryParams,
     Map<String, String>? headers,
   }) async {
-    if (url == null) return null;
     final response = await _dio.get(url,
         queryParameters: queryParams, options: Options(headers: headers));
     return response;

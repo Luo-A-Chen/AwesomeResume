@@ -11,7 +11,7 @@ class _BlblVideoRequester extends VideoRequester {
         'ps': count,
       },
     );
-    final rcmdVideosRes = RcmdVideosResponse.fromJson(res?.data);
+    final rcmdVideosRes = RcmdVideosResponse.fromJson(res.data);
     // TODO 处理请求错误
     return rcmdVideosRes.data.items;
   }

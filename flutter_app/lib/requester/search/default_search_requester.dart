@@ -107,13 +107,14 @@ class _DefaultSearchRequester extends SearchRequester {
   }
 
   @override
-  Future<List<SearchResult>> getTypeSearchResults(String keyword,
-      {int page = 1,
-      int pageSize = 20,
-      String order = 'totalrank',
-      String duration = '0',
-      String tids = '0',
-      required String searchType}) async {
+  Future<List<SearchResult>> getTypeSearchResults(
+    String keyword, {
+    num page = 1,
+    String? order,
+    num? duration,
+    String? tids,
+    required String searchType,
+  }) async {
     AppToast.unimplemented();
     return [];
   }

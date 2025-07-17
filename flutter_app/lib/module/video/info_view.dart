@@ -34,7 +34,6 @@ class _InfoViewState extends State<InfoView> {
   void _getVideos() async {
     final res = await Http.get(
         '/web-interface/archive/related?aid=${widget.avid}');
-    if (res == null) return;
     setState(() {
       _videos = RelatedVideosResponse.fromJson(res.data).data;
     });

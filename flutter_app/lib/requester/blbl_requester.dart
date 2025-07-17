@@ -30,7 +30,7 @@ class _BlblRequester extends Requester {
   static Future<Map<String, dynamic>> _getNewWbiKeys() async {
     var res = await Http.get('/web-interface/nav');
     print('重新获取img_key和sub_key');
-    var data = res?.data['data'];
+    var data = res.data['data'];
     final String imgUrl = data['wbi_img']['img_url'];
     final String subUrl = data['wbi_img']['sub_url'];
     final Map<String, dynamic> wbiKeys = {
@@ -159,11 +159,18 @@ class _BlblRequester extends Requester {
   Future<void> cinfigHttp() async {
     Http.cleanOptions();
     final res = await Http.get('https://www.bilibili.com/');
-    final cookie = res?.headers['set-cookie']?.join(';');
+    final cookie = res.headers['set-cookie']?.join(';');
     // 设置baseUrl和cookie
     Http.setOptions(BaseOptions(
       baseUrl: 'https://api.bilibili.com/x',
-      headers: {'cookie': cookie},
+      // 设置请求头防止请求不返回数据
+      headers: {
+        'cookie': cookie,
+        "env": "prod",
+        "app-key": "android64",
+        "x-bili-aurora-zone": "sh001",
+        "referer": "https://www.bilibili.com/"
+      },
     ));
   }
 }
