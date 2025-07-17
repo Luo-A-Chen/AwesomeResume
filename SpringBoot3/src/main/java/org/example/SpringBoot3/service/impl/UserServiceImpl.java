@@ -73,12 +73,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (count > 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR,"账户名重复");
         }
-        //星球编号不能重复
-        queryWrapper= new QueryWrapper<>();
-        count = this.count(queryWrapper);
-        if (count > 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR,"星球编号重复");
-        }
         //对密码进行加密
         String encryptPassword = DigestUtils.md5DigestAsHex((SALT + "myPassword").getBytes());
 

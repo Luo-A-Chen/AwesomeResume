@@ -12,13 +12,12 @@ import org.example.SpringBoot3.model.User;
 import org.example.SpringBoot3.model.request.UserLoginRequest;
 import org.example.SpringBoot3.model.request.UserRegisterRequest;
 import org.example.SpringBoot3.service.UserService;
+import org.example.SpringBoot3.utils.IsAdmin;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static org.example.SpringBoot3.constant.UserConstant.ADMIN_ROLE;
 import static org.example.SpringBoot3.constant.UserConstant.USER_LOGIN_STATE;
 
 /**
@@ -30,6 +29,8 @@ import static org.example.SpringBoot3.constant.UserConstant.USER_LOGIN_STATE;
 public class UserController {
     @Resource
     private UserService userService;
+    @Resource
+    private IsAdmin isAdmin;
 
     @PostMapping("/register")
     public BaseResponse<Long> register(@RequestBody UserRegisterRequest userRegisterRequest){
@@ -39,8 +40,7 @@ public class UserController {
         String userAccount = userRegisterRequest.getUserAccount();
         String userPassword = userRegisterRequest.getUserPassword();
         String checkPassword = userRegisterRequest.getCheckPassword();
-        String planetCode = userRegisterRequest.getPlanetCode();
-        if(StringUtils.isAnyBlank(userAccount,userPassword,checkPassword,planetCode)){
+        if(StringUtils.isAnyBlank(userAccount,userPassword,checkPassword)){
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         long result= userService.userRegister(userAccount,userPassword,checkPassword);
@@ -87,7 +87,7 @@ public class UserController {
     @GetMapping("/search")
     public BaseResponse<List<User>> searchUsers(String username, HttpServletRequest request){
         //仅管理员可以查询
-        if(!isAdmin(request)){
+        if(!isAdmin.checkAdmin(request)){
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
         }
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
@@ -102,9 +102,9 @@ public class UserController {
         return ResultUtils.success(list);
     }
     @GetMapping("/delete")
-    public BaseResponse<Boolean>deleteUser(@RequestBody Long id,HttpServletRequest request){
+    public BaseResponse<Boolean>deleteUser(Long id,HttpServletRequest request){
         //仅管理员可以查询
-        if(!isAdmin(request)){
+        if(!isAdmin.checkAdmin(request)){
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
         }
         if(id <=0){
@@ -121,13 +121,5 @@ public class UserController {
         List<User> userList = userService.serchUsersBytags(tagNameList);
         return ResultUtils.success(userList);
     }
-    /**
-     * 是否为管理员
-     */
-    private boolean isAdmin(HttpServletRequest request){
-        // 仅管理员可查询
-        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
-        User user = (User) userObj;
-        return user != null && user.getUserRole() == ADMIN_ROLE;
-    }
+
 }

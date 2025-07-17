@@ -10,8 +10,6 @@
         <processorPath useClasspath="false">
           <entry name="$PROJECT_DIR$/../sdk/apache-maven-3.9.9/repository/org/springframework/boot/spring-boot-configuration-processor/3.4.4/spring-boot-configuration-processor-3.4.4.jar" />
           <entry name="$PROJECT_DIR$/../sdk/apache-maven-3.9.9/repository/org/projectlombok/lombok/1.18.36/lombok-1.18.36.jar" />
-          <entry name="$PROJECT_DIR$/../sdk/apache-maven-3.9.9/repository/org/springframework/boot/spring-boot-configuration-processor/3.4.4/spring-boot-configuration-processor-3.4.4.jar" />
-          <entry name="$PROJECT_DIR$/../sdk/apache-maven-3.9.9/repository/org/projectlombok/lombok/1.18.36/lombok-1.18.36.jar" />
         </processorPath>
         <module name="SpringBoot3" />
       </profile>
