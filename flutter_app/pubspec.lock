@@ -58,7 +58,7 @@ packages:
     source: hosted
     version: "1.19.0"
   crypto:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: crypto
       sha256: "1e445881f28f22d6140f181e07737b22f1e099a5e1ff94b0af2f9e4a463f4855"
@@ -168,6 +168,15 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  fluttertoast:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: b904d5000b30d31d0d67fbd96ac53e3320d2e222
+      url: "https://gitcode.com/openharmony-sig/flutter_fluttertoast.git"
+    source: git
+    version: "8.2.2"
   html:
     dependency: transitive
     description:
@@ -489,6 +498,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "1.2.2"
+  timeago:
+    dependency: "direct main"
+    description:
+      name: timeago
+      sha256: b05159406a97e1cbb2b9ee4faa9fb096fe0e2dfcd8b08fcd2a00553450d3422e
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "3.7.1"
   typed_data:
     dependency: transitive
     description:

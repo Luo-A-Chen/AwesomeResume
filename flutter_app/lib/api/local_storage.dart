@@ -3,7 +3,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 
 class LocalStorage {
-  static final _sp = SharedPreferences.getInstance();
+  LocalStorage._();
+  static SharedPreferences? sp;
+
+  /// TODO 必须在运行软件前调用
+  static initSP() async => sp = await SharedPreferences.getInstance();
 
   static Future<void> saveStringToJsonFile(String name, String string) async {
     final appDir = await getApplicationDocumentsDirectory();

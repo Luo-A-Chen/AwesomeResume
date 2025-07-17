@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/api/nav_extension.dart';
 
-import 'module/dynamic/dynamic_page.dart';
+import 'module/follow/follow_page.dart';
 import 'module/home/home_page.dart';
 import 'module/mine/mine_page.dart';
 import 'module/settings/server_select_page.dart';
@@ -16,34 +16,30 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   int _currentIndex = 0;
-
-  @override
-  initState() {
-    super.initState();
-  }
+  final _pageController = PageController();
 
   final _navItems = [
-    PageItem(title: '首页', icon: Icons.home, page: const HomePage()),
-    PageItem(title: '动态', icon: Icons.wind_power, page: const DynamicPage()),
+    PageItem(title: '首页', icon: Icons.home_outlined, page: const HomePage()),
+    PageItem(
+        title: '关注', icon: Icons.wind_power_outlined, page: const FollowPage()),
     PageItem(title: '我的', icon: Icons.person_outline, page: const MinePage()),
   ];
 
-  var server = Settings.instance.server;
+  var requester = Settings.instance.requester;
 
-  Future<void> goToSlectServer() async {
+  Future<void> _goSelectServer() async {
     await context.push(ServerSelectPage());
     setState(() {
-      server = Settings.instance.server;
+      requester = Settings.instance.requester;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (server == null) return noServerView();
+    if (requester == null) return _selectServerView();
     return Scaffold(
       body: PageView(
-        key: Key('$_currentIndex'),
-        controller: PageController(initialPage: _currentIndex),
+        controller: _pageController,
         physics: const NeverScrollableScrollPhysics(),
         children: _navItems.map((item) => item.page).toList(),
       ),
@@ -51,11 +47,7 @@ class _MainPageState extends State<MainPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
+        onTap: _changePage,
         type: BottomNavigationBarType.fixed,
         items: _navItems.map((item) {
           return BottomNavigationBarItem(
@@ -67,18 +59,26 @@ class _MainPageState extends State<MainPage> {
     );
   }
 
-  Widget noServerView() {
+  Widget _selectServerView() {
     return Scaffold(
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text('请先选择服务器'),
-            ElevatedButton(onPressed: goToSlectServer, child: Text('选择服务器'))
+            ElevatedButton(onPressed: _goSelectServer, child: Text('选择服务器'))
           ],
         ),
       ),
     );
+  }
+
+  void _changePage(int index) {
+    setState(() {
+      _pageController.animateToPage(index,
+          duration: Duration(milliseconds: 300), curve: Curves.easeInOut);
+      _currentIndex = index;
+    });
   }
 }
 

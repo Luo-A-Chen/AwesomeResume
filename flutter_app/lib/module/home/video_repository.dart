@@ -1,21 +1,42 @@
 import 'package:loading_more_list/loading_more_list.dart';
 
-import '../../api/net_requester.dart';
 import '../settings/settings.dart';
 import '../video/video_response.dart';
 
 class VideoRepository extends LoadingMoreBase<Video> {
-  int freshIdx = 1;
+  final _settings = Settings.instance;
+  int pageIdx = 1;
+  bool _hasMore = false;
+
   @override
   Future<bool> loadData([bool isLoadMoreAction = false]) async {
-    var server = Settings.instance.server;
-    print('加载第$freshIdx页视频');
-    var res = await NetRequester.get(server!.videoUrl.homeRcmd,
-        queryParams: {'fresh_idx': freshIdx++});
-    final rcmdVideosRes = RcmdVideosResponse.fromJson(res?.data);
-    // TODO 处理请求错误
-    addAll(rcmdVideosRes.data.items);
-    print('加载了${rcmdVideosRes.data.items.length}条视频');
-    return true;
+    var videoRequester = _settings.requester!.videoRequester;
+    print('加载第$pageIdx页视频');
+    final count = 10;
+    var videos = <Video>[];
+    var success = false;
+    try {
+      videos = await videoRequester.getRcmdVideos(
+        pageIdx: pageIdx++,
+        count: count,
+      );
+      addAll(videos);
+      print('加载了${videos.length}条视频');
+      success = true;
+    } catch (e) {
+      success = false;
+    }
+    _hasMore = videos.length == count;
+    return success;
+  }
+
+  @override
+  bool get hasMore => _hasMore;
+
+  @override
+  Future<bool> refresh([notifyStateChanged = true]) async {
+    pageIdx = 1;
+    _hasMore = true;
+    return await super.refresh(notifyStateChanged);
   }
 }

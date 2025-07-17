@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app/api/nav_extension.dart';
 import 'package:loading_more_list/loading_more_list.dart';
 
+import '../search/search_page.dart';
 import '../video/video_page.dart';
 import '../video/video_response.dart';
 import 'video_repository.dart';
@@ -14,26 +15,99 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage>
+    with AutomaticKeepAliveClientMixin {
   final _videoRepository = VideoRepository();
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
-      appBar: AppBar(title: SelectableText('首页'), centerTitle: true),
-      body: LoadingMoreCustomScrollView(slivers: [
-        LoadingMoreSliverList(SliverListConfig(
-          itemBuilder: (context, video, index) {
-            return _buildVideoCard(video);
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        title: _searchBar(),
+        actions: [
+          IconButton(
+              icon: const Icon(Icons.videogame_asset_outlined),
+              onPressed: () {}),
+          IconButton(icon: const Icon(Icons.mail_outline), onPressed: () {}),
+        ],
+      ),
+      body: RefreshIndicator(
+        onRefresh: _videoRepository.refresh,
+        child: LoadingMoreCustomScrollView(slivers: [
+          LoadingMoreSliverList(SliverListConfig(
+            itemBuilder: (context, video, index) => _buildVideoCard(video),
+            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+              crossAxisSpacing: 6,
+              mainAxisSpacing: 6,
+              maxCrossAxisExtent: 300,
+              childAspectRatio: 0.8,
+            ),
+            sourceList: _videoRepository,
+          )),
+        ]),
+      ),
+    );
+  }
+
+  Widget _searchBar() {
+    return Row(
+      children: [
+        // 登录按钮
+        GestureDetector(
+          onTap: () {
+            if (false) {
+              // 已登录，显示用户信息或跳转到个人页面
+            } else {
+              // TODO 未登录，跳转到登录页面
+              // Navigator.of(context).push(
+              //   MaterialPageRoute(
+              //     builder: (context) => const LoginPage(),
+              //   ),
+              // );
+            }
           },
-          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-            crossAxisSpacing: 6,
-            mainAxisSpacing: 6,
-            maxCrossAxisExtent: 300,
-            childAspectRatio: 0.8,
+          child: Container(
+            width: 32,
+            height: 32,
+            margin: const EdgeInsets.only(right: 8),
+            decoration:
+                BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+            child: const Icon(
+              Icons.person,
+              color: Colors.grey,
+              size: 20,
+            ),
           ),
-          sourceList: _videoRepository,
-        )),
-      ]),
+        ),
+        // 搜索框
+        Expanded(
+          child: Container(
+            height: 36,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Row(
+              children: [
+                const SizedBox(width: 8),
+                const Icon(Icons.search, color: Colors.grey),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () =>
+                        context.push(const SearchPage(initialKeyword: '灵笼第二季')),
+                    child: Text(
+                      '灵笼第二季',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -61,7 +135,7 @@ class _HomePageState extends State<HomePage> {
                 AspectRatio(
                   aspectRatio: 1.4,
                   child: CachedNetworkImage(
-                    imageUrl:  video.pic,
+                    imageUrl: video.pic,
                     fit: BoxFit.cover,
                     errorWidget: (context, error, stackTrace) {
                       return Container(
@@ -182,4 +256,7 @@ class _HomePageState extends State<HomePage> {
     }
     return count.toString();
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

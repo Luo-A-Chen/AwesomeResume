@@ -11,6 +11,10 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
+  fluttertoast: # 轻提示
+    git:
+      url: "https://gitcode.com/openharmony-sig/flutter_fluttertoast.git"
+      branch: "/br_8.2.8_ohos"
   video_player: # 视频播放鸿蒙适配版
     git:
       url: "https://gitcode.com/openharmony-sig/flutter_packages.git"
@@ -22,7 +26,9 @@ dependencies:
       path: "packages/shared_preferences/shared_preferences"
   dio: ^5.8.0+1 # 网络请求
   loading_more_list: ^7.1.0 # 上拉加载更多
-  cached_network_image: ^3.4.1
+  cached_network_image: ^3.4.1 # 图片缓存
+  timeago: ^3.7.1 # 时间
+  crypto: ^3.0.6
 
 dependency_overrides:
   path_provider:

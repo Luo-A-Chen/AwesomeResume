@@ -1,5 +1,5 @@
 // TODO 放到服务器类去
-import '../../api/net_requester.dart';
+import '../../api/http.dart';
 
 class VideoUrls {
   VideoUrls._();
@@ -19,12 +19,12 @@ class VideoUrls {
         'bvid': bvid,
       };
 
-      final res = await NetRequester.get(
+      final res = await Http.get(
         'https://api.bilibili.com/x/web-interface/view',
-        queryParams: queryParams,
+        params: queryParams,
         headers: headers,
       );
-      return res?.data['data'];
+      return res.data['data'];
     } catch (e) {
       print('获取视频信息失败: $e');
       rethrow;
@@ -60,12 +60,12 @@ class VideoUrls {
         'fourk': '1',
       };
 
-      final res = await NetRequester.get(
+      final res = await Http.get(
         'https://api.bilibili.com/x/player/playurl',
-        queryParams: queryParams,
+        params: queryParams,
         headers: headers,
       );
-      return res?.data;
+      return res.data;
     } catch (e) {
       print('获取视频流URL失败: $e');
       rethrow;

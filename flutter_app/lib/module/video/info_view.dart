@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app/api/nav_extension.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../api/http.dart';
 import 'video_page.dart';
 import 'video_response.dart';
 
@@ -31,13 +32,11 @@ class _InfoViewState extends State<InfoView> {
   }
 
   void _getVideos() async {
-    // TODO _getVideos
-    // final data = await NetService.resDataByGet(
-    //   'https://api.bilibili.com/x/web-interface/archive/related?aid=${widget.avid}',
-    // );
-    // setState(() {
-    //   _videos = VideoPageVideosResponse.fromJson(data).data;
-    // });
+    final res = await Http.get(
+        '/web-interface/archive/related?aid=${widget.avid}');
+    setState(() {
+      _videos = RelatedVideosResponse.fromJson(res.data).data;
+    });
   }
 
   @override

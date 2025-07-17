@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'server.dart';
+import '../../requester/requester.dart';
 import 'settings.dart';
 
 class ServerSelectPage extends StatelessWidget {
@@ -11,19 +11,16 @@ class ServerSelectPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('选择服务器')),
       body: ListView.builder(
-        itemCount: Server.values.length,
+        itemCount: Requester.values.length,
         itemBuilder: (BuildContext context, int index) {
-          final server = Server.values[index];
+          final requester = Requester.values[index];
           final settings = Settings.instance;
           return ListTile(
-              title: Text(server.name),
-              subtitle: Text(server.baseUrl),
-              trailing:
-                  server == settings.server ? const Icon(Icons.check) : null,
-              onTap: () {
-                settings.setServer(server);
-                Navigator.pop(context);
-              });
+              title: Text(requester.serverName),
+              trailing: requester == settings.requester
+                  ? const Icon(Icons.check)
+                  : null,
+              onTap: () => settings.changeServer(requester));
         },
       ),
     );
