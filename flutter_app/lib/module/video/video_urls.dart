@@ -21,7 +21,7 @@ class VideoUrls {
 
       final res = await Http.get(
         'https://api.bilibili.com/x/web-interface/view',
-        queryParams: queryParams,
+        params: queryParams,
         headers: headers,
       );
       return res.data['data'];
@@ -62,7 +62,7 @@ class VideoUrls {
 
       final res = await Http.get(
         'https://api.bilibili.com/x/player/playurl',
-        queryParams: queryParams,
+        params: queryParams,
         headers: headers,
       );
       return res.data;

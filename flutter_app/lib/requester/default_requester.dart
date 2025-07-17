@@ -21,6 +21,6 @@ class _DefaultVideoRequester extends VideoRequester {
     required int pageIdx,
     int count = 18,
   }) async {
-    return await AppToast.unimplemented();
+    return await AppToast.serverUnimplemented();
   }
 }

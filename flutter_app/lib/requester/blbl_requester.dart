@@ -4,7 +4,7 @@ class _BlblRequester extends Requester {
   _BlblRequester()
       : super(
           serverName: '哔哩哔哩',
-          videoRequester: _BlblVideoRequester(),
+          videoRequester: BlblVideoRequester(),
           searchRequester: _BlblSearchRequester(),
         );
 

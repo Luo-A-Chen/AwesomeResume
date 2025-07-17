@@ -25,7 +25,7 @@ class _BlblSearchRequester extends SearchRequester {
     print('搜索参数:\n $params');
     final res = await Http.get(
       '/web-interface/wbi/search/type',
-      queryParams: params,
+      params: params,
     );
     final searchRes = SearchResponse.fromJson(res.data);
     print('搜索到${searchRes.data.result.length}个结果');
@@ -34,7 +34,7 @@ class _BlblSearchRequester extends SearchRequester {
 
   @override
   Future<List<SearchResult>> getAllSearchResults() async {
-    AppToast.unimplemented();
+    AppToast.serverUnimplemented();
     return [];
   }
 }

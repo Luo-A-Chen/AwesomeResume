@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/api/nav_extension.dart';
 
+import '../../api/app_toast.dart';
+import '../../requester/requester.dart';
 import '../settings/settings.dart';
+import '../video/video_page.dart';
 import 'search_model.dart';
 
 class SearchPage extends StatefulWidget {
@@ -38,11 +42,6 @@ class _SearchPageState extends State<SearchPage>
     _searchController = TextEditingController(text: widget.initialKeyword);
     _tabController = TabController(length: _tabs.length, vsync: this);
     _tabController.addListener(_handleTabSelection);
-    if (widget.initialKeyword.isNotEmpty) {
-      _currentKeyword = widget.initialKeyword;
-      _performSearch(
-          widget.initialKeyword, _tabSearchType[_tabs[_tabController.index]]);
-    }
   }
 
   @override
@@ -83,6 +82,7 @@ class _SearchPageState extends State<SearchPage>
           Expanded(
             child: TabBarView(
               controller: _tabController,
+              // TODO 根据搜索类别显示不同搜索结果页
               children: _tabs.map((tabName) {
                 return _isLoading
                     ? const Center(child: CircularProgressIndicator())
@@ -159,14 +159,11 @@ class _SearchPageState extends State<SearchPage>
         mainAxisSpacing: 8.0,
         childAspectRatio: 0.8,
       ),
-      // TODO 筛选类别
       itemCount: _searchResults.length,
       itemBuilder: (context, index) {
         final item = _searchResults[index];
         return GestureDetector(
-          onTap: () {
-            // TODO route to detail page
-          },
+          onTap: () => _jump(item, context),
           child: Card(
             clipBehavior: Clip.antiAlias,
             child: Column(
@@ -212,5 +209,24 @@ class _SearchPageState extends State<SearchPage>
         );
       },
     );
+  }
+
+  void _jump(SearchResult item, BuildContext context) {
+    // TODO 其它类型的搜索结果跳转
+    final videoRequester = _settings.requester!.videoRequester;
+    if (item.type == 'video' && videoRequester is BlblVideoRequester) {
+      videoRequester.getVideoInfo(item.bvid).then((videoInfo) {
+        if (context.mounted) {
+          context.push(VideoPage(
+            cid: videoInfo['cid'],
+            avid: item.aid,
+            title: item.title,
+            imgUrl: item.pic,
+          ));
+        }
+      });
+    } else {
+      AppToast.showWarning('暂未实现该功能');
+    }
   }
 }

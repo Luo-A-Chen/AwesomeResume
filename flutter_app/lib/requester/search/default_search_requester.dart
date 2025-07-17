@@ -102,7 +102,7 @@ class _DefaultSearchRequester extends SearchRequester {
 
   @override
   Future<List<SearchResult>> getAllSearchResults() async {
-    AppToast.unimplemented();
+    AppToast.serverUnimplemented();
     return [];
   }
 
@@ -115,7 +115,7 @@ class _DefaultSearchRequester extends SearchRequester {
     String? tids,
     required String searchType,
   }) async {
-    AppToast.unimplemented();
+    AppToast.serverUnimplemented();
     return [];
   }
 }
