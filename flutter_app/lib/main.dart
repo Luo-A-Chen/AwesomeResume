@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:fluttertoast/fluttertoast.dart' as f_toast;
 
-import 'api/app_toast.dart';
+import 'api/toast.dart';
 import 'api/local_storage.dart';
-import 'main_page.dart';
-import 'module/settings/settings.dart';
+import 'bottom_nav/main_page.dart';
+import 'settings/settings.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await LocalStorage.initSP(); // 必须在运行软件前初始化本地存储
   await Settings.loadFromLocal(); // 从本地加载设置
-  await Settings.instance.requester?.cinfigHttp(); // 初始化网络请求
-  final app = RestartableApp(keyNotifier: Settings.instance.appKeyNotifier);
-  runApp(app);
+  await Settings.instance.dataProvider?.initHttp(); // 初始化网络请求
+  runApp(RestartableApp(keyNotifier: Settings.instance.appKeyNotifier));
 }
 
 class RestartableApp extends StatefulWidget {
@@ -33,7 +32,7 @@ class _RestartableAppState extends State<RestartableApp> {
       builder: (context, key, _) {
         return MaterialApp(
           key: key,
-          builder: FToastBuilder(),
+          builder: f_toast.FToastBuilder(),
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
             colorSchemeSeed: const Color(0xFFFF5F8F), // 主题色
@@ -49,7 +48,7 @@ class _RestartableAppState extends State<RestartableApp> {
             GlobalCupertinoLocalizations.delegate,
           ],
           home: Builder(builder: (context) {
-            AppToast.init(context);
+            Toast.init(context);
             return const MainPage();
           }),
         );

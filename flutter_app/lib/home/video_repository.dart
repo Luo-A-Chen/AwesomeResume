@@ -1,5 +1,6 @@
 import 'package:loading_more_list/loading_more_list.dart';
 
+import '../api/toast.dart';
 import '../settings/settings.dart';
 import '../video/video_response.dart';
 
@@ -10,12 +11,13 @@ class VideoRepository extends LoadingMoreBase<Video> {
 
   @override
   Future<bool> loadData([bool isLoadMoreAction = false]) async {
-    var videoRequester = _settings.requester!.videoRequester;
     print('加载第$pageIdx页视频');
     final count = 10;
     var videos = <Video>[];
     var success = false;
     try {
+      var videoRequester = _settings.dataProvider!.videoProvider;
+      if (videoRequester == null) return await Toast.serverUnimplemented();
       videos = await videoRequester.getRcmdVideos(
         pageIdx: pageIdx++,
         count: count,

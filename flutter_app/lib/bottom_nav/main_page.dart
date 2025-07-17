@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/api/nav_extension.dart';
 
-import 'module/follow/follow_page.dart';
-import 'module/home/home_page.dart';
-import 'module/mine/mine_page.dart';
-import 'module/settings/server_select_page.dart';
-import 'module/settings/settings.dart';
+import '../follow/follow_page.dart';
+import '../home/home_page.dart';
+import '../mine/mine_page.dart';
+import '../settings/server_select_page.dart';
+import '../settings/settings.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -25,12 +25,12 @@ class _MainPageState extends State<MainPage> {
     PageItem(title: '我的', icon: Icons.person_outline, page: const MinePage()),
   ];
 
-  var requester = Settings.instance.requester;
+  var requester = Settings.instance.dataProvider;
 
   Future<void> _goSelectServer() async {
     await context.push(ServerSelectPage());
     setState(() {
-      requester = Settings.instance.requester;
+      requester = Settings.instance.dataProvider;
     });
   }
 

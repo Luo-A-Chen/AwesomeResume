@@ -1,6 +1,8 @@
-part of '../requester.dart';
+import '../../api/http.dart';
+import '../video_response.dart';
+import '../video_provider.dart';
 
-class BlblVideoRequester extends VideoRequester {
+class BlblVideoProvider extends VideoProvider {
   Future<Map<String, dynamic>> getVideoInfo(String bvid) async {
     final res = await Http.get('/web-interface/view', params: {'bvid': bvid});
     return res.data['data'];
@@ -16,7 +18,7 @@ class BlblVideoRequester extends VideoRequester {
         'ps': count,
       },
     );
-    final rcmdVideosRes = RcmdVideosResponse.fromJson(res.data);
+    final rcmdVideosRes = RcmdVideoRes.fromJson(res.data);
     // TODO 处理请求错误
     return rcmdVideosRes.data.items;
   }

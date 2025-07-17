@@ -1,8 +1,9 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app/api/nav_extension.dart';
 
-import '../../api/app_toast.dart';
-import '../../requester/requester.dart';
+import '../api/toast.dart';
+import '../video/data_provider/blbl_video_provider.dart';
 import '../settings/settings.dart';
 import '../video/video_page.dart';
 import 'search_model.dart';
@@ -62,10 +63,13 @@ class _SearchPageState extends State<SearchPage>
       _isLoading = true;
       _currentKeyword = keyword;
     });
-    final requester = _settings.requester!.searchRequester;
-    final results = await (searchType == null
-        ? requester.getAllSearchResults()
-        : requester.getTypeSearchResults(keyword, searchType: searchType));
+    final provider = _settings.dataProvider!.searchProvider;
+    if (provider == null) Toast.serverUnimplemented();
+    final results = provider == null
+        ? <SearchResult>[]
+        : await (searchType == null
+            ? provider.getAllSearchResults()
+            : provider.getTypeSearchResults(keyword, searchType: searchType));
     setState(() {
       _searchResults = results;
       _isLoading = false;
@@ -171,10 +175,12 @@ class _SearchPageState extends State<SearchPage>
               children: [
                 AspectRatio(
                   aspectRatio: 16 / 9,
-                  child: Image.network(
-                    item.pic.startsWith('//') ? 'https:${item.pic}' : item.pic,
+                  child: CachedNetworkImage(
+                    imageUrl: item.pic.startsWith('//')
+                        ? 'https:${item.pic}'
+                        : item.pic,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
+                    errorWidget: (context, error, stackTrace) {
                       return const Center(child: Icon(Icons.broken_image));
                     },
                   ),
@@ -213,8 +219,8 @@ class _SearchPageState extends State<SearchPage>
 
   void _jump(SearchResult item, BuildContext context) {
     // TODO 其它类型的搜索结果跳转
-    final videoRequester = _settings.requester!.videoRequester;
-    if (item.type == 'video' && videoRequester is BlblVideoRequester) {
+    final videoRequester = _settings.dataProvider!.videoProvider;
+    if (item.type == 'video' && videoRequester is BlblVideoProvider) {
       videoRequester.getVideoInfo(item.bvid).then((videoInfo) {
         if (context.mounted) {
           context.push(VideoPage(
@@ -226,7 +232,7 @@ class _SearchPageState extends State<SearchPage>
         }
       });
     } else {
-      AppToast.showWarning('暂未实现该功能');
+      Toast.showWarning('暂未实现该功能');
     }
   }
 }

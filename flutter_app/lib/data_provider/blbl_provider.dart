@@ -1,11 +1,21 @@
-part of 'requester.dart';
 
-class _BlblRequester extends Requester {
-  _BlblRequester()
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
+import 'package:dio/dio.dart';
+
+import '../api/http.dart';
+import '../api/local_storage.dart';
+import 'data_provider.dart';
+import '../search/data_provider/blbl_search_provider.dart';
+import '../video/data_provider/blbl_video_provider.dart';
+
+class BlblProvider extends DataProvider {
+  BlblProvider()
       : super(
           serverName: '哔哩哔哩',
-          videoRequester: BlblVideoRequester(),
-          searchRequester: _BlblSearchRequester(),
+          videoProvider: BlblVideoProvider(),
+          searchProvider: BlblSearchProvider(),
         );
 
   // 获取本地img_key和sub_key
@@ -156,7 +166,7 @@ class _BlblRequester extends Requester {
   }
 
   @override
-  Future<void> cinfigHttp() async {
+  Future initHttp() async {
     Http.cleanOptions();
     final res = await Http.get('https://www.bilibili.com/');
     final cookie = res.headers['set-cookie']?.join(';');

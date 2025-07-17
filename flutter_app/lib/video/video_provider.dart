@@ -1,6 +1,6 @@
-import '../../module/video/video_response.dart';
+import 'video_response.dart';
 
-abstract class VideoRequester {
+abstract class VideoProvider {
   Future<List<Video>> getRcmdVideos({
     required int pageIdx,
     int count = 10,

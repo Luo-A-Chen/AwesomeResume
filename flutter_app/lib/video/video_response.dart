@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-class RcmdVideosResponse {
+class RcmdVideoRes {
   /// 状态码
   final int code;
   /// 消息
@@ -10,15 +10,15 @@ class RcmdVideosResponse {
   /// 数据
   final VideoData data;
 
-  RcmdVideosResponse({
+  RcmdVideoRes({
     required this.code,
     required this.message,
     required this.ttl,
     required this.data,
   });
 
-  factory RcmdVideosResponse.fromJson(Map<String, dynamic> json) {
-    return RcmdVideosResponse(
+  factory RcmdVideoRes.fromJson(Map<String, dynamic> json) {
+    return RcmdVideoRes(
       code: json['code'] ?? 0,
       message: json['message'] ?? '',
       ttl: json['ttl'] ?? 0,
@@ -26,8 +26,8 @@ class RcmdVideosResponse {
     );
   }
 
-  static RcmdVideosResponse fromJsonString(String jsonString) {
-    return RcmdVideosResponse.fromJson(json.decode(jsonString));
+  static RcmdVideoRes fromJsonString(String jsonString) {
+    return RcmdVideoRes.fromJson(json.decode(jsonString));
   }
 }
 
@@ -45,7 +45,7 @@ class VideoData {
   }
 }
 
-class RelatedVideosResponse {
+class RelatedVideoRes {
   /// 状态码
   final int code;
   /// 消息
@@ -55,15 +55,15 @@ class RelatedVideosResponse {
   /// 数据
   final List<Video> data;
 
-  RelatedVideosResponse({
+  RelatedVideoRes({
     required this.code,
     required this.message,
     required this.ttl,
     required this.data,
   });
 
-  factory RelatedVideosResponse.fromJson(Map<String, dynamic> json) {
-    return RelatedVideosResponse(
+  factory RelatedVideoRes.fromJson(Map<String, dynamic> json) {
+    return RelatedVideoRes(
       code: json['code'] ?? 0,
       message: json['message'] ?? '',
       ttl: json['ttl'] ?? 0,
@@ -71,8 +71,8 @@ class RelatedVideosResponse {
     );
   }
 
-  static RelatedVideosResponse fromJsonString(String jsonString) {
-    return RelatedVideosResponse.fromJson(json.decode(jsonString));
+  static RelatedVideoRes fromJsonString(String jsonString) {
+    return RelatedVideoRes.fromJson(json.decode(jsonString));
   }
 }
 

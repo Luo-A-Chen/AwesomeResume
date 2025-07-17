@@ -2,24 +2,24 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 
-import '../../api/local_storage.dart';
-import '../../requester/requester.dart';
+import '../api/local_storage.dart';
+import '../data_provider/data_provider.dart';
 
 class Settings {
   final ValueNotifier<Key> appKeyNotifier = ValueNotifier(Key('app'));
-  Requester? _requester;
-  Requester? get requester => _requester;
+  DataProvider? _dataProvider;
+  DataProvider? get dataProvider => _dataProvider;
 
   static Settings instance = Settings._();
   Settings._();
 
   Settings._fromJson(Map json)
-      : _requester = Requester.values
+      : _dataProvider = DataProvider.values
             .firstWhere((element) => element.serverName == json['server']);
 
-  Future<void> changeServer(Requester requester) async {
-    _requester = requester; // 更新请求器
-    await _requester!.cinfigHttp(); // 初始化网络请求配置
+  Future<void> changeServer(DataProvider requester) async {
+    _dataProvider = requester; // 更新请求器
+    await _dataProvider!.initHttp(); // 初始化网络请求配置
     restartApp(); // 重启app
     saveToLocal();
   }
@@ -41,7 +41,7 @@ class Settings {
 
   Map toJson() {
     return {
-      'server': requester?.serverName,
+      'server': dataProvider?.serverName,
     };
   }
 }

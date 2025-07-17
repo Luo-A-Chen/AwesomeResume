@@ -1,6 +1,6 @@
-import '../../module/search/search_model.dart';
+import 'search_model.dart';
 
-abstract class SearchRequester {
+abstract class SearchProvider {
   Future<List<SearchResult>> getTypeSearchResults(
     String keyword, {
     num page = 1,

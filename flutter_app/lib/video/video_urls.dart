@@ -1,5 +1,5 @@
 // TODO 放到服务器类去
-import '../../api/http.dart';
+import '../api/http.dart';
 
 class VideoUrls {
   VideoUrls._();

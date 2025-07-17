@@ -29,7 +29,7 @@ class _SettingsPageState extends State<SettingsPage> {
         children: [
           ListTile(
             title: Text('服务器'),
-            subtitle: Text(Settings.instance.requester?.serverName ?? '未设置'),
+            subtitle: Text(Settings.instance.dataProvider?.serverName ?? '未设置'),
             trailing: Icon(Icons.arrow_forward_ios),
             onTap: goToSlectServer,
           ),

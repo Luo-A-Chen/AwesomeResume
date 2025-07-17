@@ -1,6 +1,11 @@
-part of '../requester.dart';
 
-class _BlblSearchRequester extends SearchRequester {
+import '../../api/toast.dart';
+import '../../api/http.dart';
+import '../search_model.dart';
+import '../../data_provider/blbl_provider.dart';
+import '../search_provider.dart';
+
+class BlblSearchProvider extends SearchProvider {
   @override
   Future<List<SearchResult>> getTypeSearchResults(
     String keyword, {
@@ -21,7 +26,7 @@ class _BlblSearchRequester extends SearchRequester {
       if (duration != null) 'duration': duration,
     };
     // 加密参数
-    params.addAll(await _BlblRequester.makSign(params));
+    params.addAll(await BlblProvider.makSign(params));
     print('搜索参数:\n $params');
     final res = await Http.get(
       '/web-interface/wbi/search/type',
@@ -34,7 +39,7 @@ class _BlblSearchRequester extends SearchRequester {
 
   @override
   Future<List<SearchResult>> getAllSearchResults() async {
-    AppToast.serverUnimplemented();
+    Toast.serverUnimplemented();
     return [];
   }
 }
