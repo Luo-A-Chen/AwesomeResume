@@ -3,7 +3,7 @@ package org.example.SpringBoot3.exception;
 import lombok.extern.slf4j.Slf4j;
 import org.example.SpringBoot3.common.BaseResponse;
 import org.example.SpringBoot3.common.ErrorCode;
-import org.example.SpringBoot3.common.ResultUtils;
+import org.example.SpringBoot3.utils.ResultUtils;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 

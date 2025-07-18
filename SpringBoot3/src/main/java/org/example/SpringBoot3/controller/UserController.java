@@ -6,7 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.example.SpringBoot3.common.BaseResponse;
 import org.example.SpringBoot3.common.ErrorCode;
-import org.example.SpringBoot3.common.ResultUtils;
+import org.example.SpringBoot3.utils.ResultUtils;
 import org.example.SpringBoot3.exception.BusinessException;
 import org.example.SpringBoot3.model.User;
 import org.example.SpringBoot3.model.request.UserLoginRequest;
