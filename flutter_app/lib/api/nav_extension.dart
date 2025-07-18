@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 
 extension NavExtension on BuildContext {
   /// 跳转到新页面
-  Future<T?> push<T>(Widget page) async {
-    return await Navigator.of(this).push<T>(MaterialPageRoute(builder: (_) => page));
+  Future push(Widget page) async {
+    return await Navigator.of(this)
+        .push(MaterialPageRoute(builder: (_) => page));
   }
 
   /// 返回上一个

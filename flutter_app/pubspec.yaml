@@ -14,7 +14,6 @@ dependencies:
   fluttertoast: # 轻提示
     git:
       url: "https://gitcode.com/openharmony-sig/flutter_fluttertoast.git"
-      branch: "/br_8.2.8_ohos"
   video_player: # 视频播放鸿蒙适配版
     git:
       url: "https://gitcode.com/openharmony-sig/flutter_packages.git"
@@ -28,7 +27,8 @@ dependencies:
   loading_more_list: ^7.1.0 # 上拉加载更多
   cached_network_image: ^3.4.1 # 图片缓存
   timeago: ^3.7.1 # 时间
-  crypto: ^3.0.6
+  crypto: ^3.0.6 # 加密
+  qr_flutter: ^4.1.0 # 二维码
 
 dependency_overrides:
   path_provider:
