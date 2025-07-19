@@ -115,6 +115,18 @@
             <artifactId>spring-boot-devtools</artifactId>
             <version>3.4.5</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-redis -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+            <version>3.4.4</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.springframework.session/spring-session-data-redis -->
+        <dependency>
+            <groupId>org.springframework.session</groupId>
+            <artifactId>spring-session-data-redis</artifactId>
+            <version>3.4.3</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -133,6 +145,10 @@
                             <artifactId>lombok</artifactId>
                         </path>
                     </annotationProcessorPaths>
+                    <!-- 排除掉批量插入的工具类 -->
+                    <excludes>
+                        <exclude>org/example/SpringBoot3/utils/InsertUser/InsertUser.java</exclude>
+                    </excludes>
                 </configuration>
             </plugin>
             <plugin>
@@ -144,6 +160,8 @@
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
                         </exclude>
+                        <!-- 排除掉批量插入的工具类 -->
+                        <exclude>org/example/SpringBoot3/utils/InsertUser</exclude>
                     </excludes>
                 </configuration>
             </plugin>

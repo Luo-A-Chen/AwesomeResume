@@ -12,6 +12,12 @@ spring:
   mvc:
     path match:
       matching-strategy: ant_path_matcher
+  #redis
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      dataBase: 1
 # springdoc-openapi项目配置
 springdoc:
   swagger-ui:
@@ -35,3 +41,4 @@ mybatis-plus:
       logic-delete-field: isDelete # 全局逻辑删除字段名
       logic-delete-value: 1 # 逻辑已删除值
       logic-not-delete-value: 0 # 逻辑未删除值
+
