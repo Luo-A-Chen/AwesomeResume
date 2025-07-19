@@ -3,7 +3,6 @@ package org.example.SpringBoot3.utils;
 import jakarta.annotation.Resource;
 import org.example.SpringBoot3.mapper.UserMapper;
 import org.example.SpringBoot3.model.User;
-import org.springframework.stereotype.Component;
 
 import java.util.Date;
 public class insertUser {

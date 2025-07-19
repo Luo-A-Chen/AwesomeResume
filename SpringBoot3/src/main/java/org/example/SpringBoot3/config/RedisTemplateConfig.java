@@ -26,6 +26,7 @@ public class RedisTemplateConfig {
         //设置连接工厂
         redisTemplate.setConnectionFactory(connectionFactory);
         //创建Json序列化工具
+
         GenericJackson2JsonRedisSerializer jsonRedisSerializer = new GenericJackson2JsonRedisSerializer();
 
         //设置Key的序列化

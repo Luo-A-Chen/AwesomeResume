@@ -173,30 +173,36 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      */
     @Override
     public List<User> serchUsersBytags(List<String> tagNameList){
-        //判断标签是否为空
+        //1.首先判断传递过来的标签是否为空，空了抛出异常
         if (CollectionUtils.isEmpty(tagNameList)){
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        //memory方法查询所有用户
+        //2.使用数据库查询把所有用户提出来
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         List<User> userList = userMapper.selectList(queryWrapper);
-        //在内存中筛选
+        //3.提出来的所用用户数据就在内存中了，然后在内存中进行筛选
         Gson gson = new Gson();
         return userList.stream().filter(user -> {
+            //调用方法拿到这个用户的标签
             String tagsStr = user.getTags();
+            //将这个用户的标签进行反序列化成string类型的set集合
+            //fromJson里，左边是标签参数，右边是转换类型
             Set<String> tempTagNameSet = gson.fromJson(tagsStr, new TypeToken<Set<String>>(){}.getType());
+            //如果这个用户没有标签，则设置为空集合
             tempTagNameSet = Optional.ofNullable(tempTagNameSet).orElse(new HashSet<>());
+            //循环遍历传入的标签列表，一个个对用户的标签集合进行匹配，不完全匹配就过滤掉
             for(String tagName : tagNameList){
                 if(!tempTagNameSet.contains(tagName)){
                     return false;
                 }
             }
             return true;
+            //将过滤的用户转换为安全的对象，并且搜集起来返回
         }).map(this::getSafetyUser).collect(Collectors.toList());
     }
 
     /**
-     * 根据标签搜索用户(sql版)
+     * 根据标签搜索用户(sql版)deprecated被弃用
      * @param tagNameList
      * @return
      */
@@ -205,15 +211,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (CollectionUtils.isEmpty(tagNameList)){
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        //sql方法查询所有用户
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        //拼接and查询，将输入的标签内容拼接在查询语句中
+        //在数据库中进行筛选
         for (String tagName : tagNameList) {
             queryWrapper = queryWrapper.like("tags", tagName);
         }
-        //查询内容放入list中
         List<User> userList = userMapper.selectList(queryWrapper);
-        //在sql中筛选
         return userList.stream().map(this::getSafetyUser).collect(Collectors.toList());
     }
 
