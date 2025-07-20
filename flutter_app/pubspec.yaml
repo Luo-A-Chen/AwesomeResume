@@ -29,6 +29,7 @@ dependencies:
   timeago: ^3.7.1 # 时间
   crypto: ^3.0.6 # 加密
   qr_flutter: ^4.1.0 # 二维码
+  extended_nested_scroll_view: ^6.2.1 # 解决sliver滑动不同步
 
 dependency_overrides:
   path_provider:

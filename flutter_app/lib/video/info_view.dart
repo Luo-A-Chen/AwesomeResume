@@ -23,7 +23,8 @@ class InfoView extends StatefulWidget {
   State<InfoView> createState() => _InfoViewState();
 }
 
-class _InfoViewState extends State<InfoView> {
+class _InfoViewState extends State<InfoView>
+    with AutomaticKeepAliveClientMixin {
   List<Video> _videos = [];
 
   @override
@@ -33,8 +34,8 @@ class _InfoViewState extends State<InfoView> {
   }
 
   void _getVideos() async {
-    final res = await Http.get(
-        '/web-interface/archive/related?aid=${widget.avid}');
+    final res =
+        await Http.get('/web-interface/archive/related?aid=${widget.avid}');
     setState(() {
       _videos = RelatedVideoRes.fromJson(res.data).data;
     });
@@ -42,23 +43,15 @@ class _InfoViewState extends State<InfoView> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return CustomScrollView(
+      physics: const ClampingScrollPhysics(),
       slivers: [
         // 视频简介信息
         SliverToBoxAdapter(child: _videoInfo()),
         // 分隔线
         const SliverToBoxAdapter(
           child: Divider(height: 1, color: Colors.black12),
-        ),
-        // 推荐视频标题
-        const SliverToBoxAdapter(
-          child: Padding(
-            padding: EdgeInsets.all(12.0),
-            child: Text(
-              '相关推荐',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          ),
         ),
         // 推荐视频列表
         SliverList(
@@ -152,7 +145,7 @@ class _InfoViewState extends State<InfoView> {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(4),
                   child: CachedNetworkImage(
-                   imageUrl:  video.pic,
+                    imageUrl: video.pic,
                     width: 160,
                     height: 90,
                     fit: BoxFit.cover,
@@ -201,4 +194,7 @@ class _InfoViewState extends State<InfoView> {
       ),
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }
