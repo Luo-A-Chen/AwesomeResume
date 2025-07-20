@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app/api/nav_extension.dart';
 import 'package:video_player/video_player.dart';
@@ -150,8 +151,8 @@ class _InfoViewState extends State<InfoView> {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(4),
-                  child: Image.network(
-                    video.pic,
+                  child: CachedNetworkImage(
+                   imageUrl:  video.pic,
                     width: 160,
                     height: 90,
                     fit: BoxFit.cover,

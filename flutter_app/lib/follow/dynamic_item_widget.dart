@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app/api/nav_extension.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -128,27 +129,27 @@ class DynamicItemWidget extends StatelessWidget {
         Stack(
           alignment: Alignment.center,
           children: [
-            Image.network(
-              archive.cover,
+            CachedNetworkImage(
+              imageUrl: archive.cover,
               fit: BoxFit.cover,
               height: 200,
               width: double.infinity,
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-                return Container(
-                  height: 200,
-                  color: Colors.grey[300],
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded /
-                              loadingProgress.expectedTotalBytes!
-                          : null,
-                    ),
-                  ),
-                );
-              },
-              errorBuilder: (context, error, stackTrace) => Container(
+              // loadingBuilder: (context, child, loadingProgress) {
+              //   if (loadingProgress == null) return child;
+              //   return Container(
+              //     height: 200,
+              //     color: Colors.grey[300],
+              //     child: Center(
+              //       child: CircularProgressIndicator(
+              //         value: loadingProgress.expectedTotalBytes != null
+              //             ? loadingProgress.cumulativeBytesLoaded /
+              //                 loadingProgress.expectedTotalBytes!
+              //             : null,
+              //       ),
+              //     ),
+              //   );
+              // },
+              errorWidget: (context, error, stackTrace) => Container(
                 height: 200,
                 color: Colors.grey[300],
                 child: const Icon(Icons.error),
@@ -181,21 +182,21 @@ class DynamicItemWidget extends StatelessWidget {
           itemCount: draw.items.length,
           itemBuilder: (context, index) {
             final item = draw.items[index];
-            return Image.network(
-              item.src,
+            return CachedNetworkImage(
+             imageUrl:  item.src,
               fit: BoxFit.cover,
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-                return Center(
-                  child: CircularProgressIndicator(
-                    value: loadingProgress.expectedTotalBytes != null
-                        ? loadingProgress.cumulativeBytesLoaded /
-                            loadingProgress.expectedTotalBytes!
-                        : null,
-                  ),
-                );
-              },
-              errorBuilder: (context, error, stackTrace) =>
+              // loadingBuilder: (context, child, loadingProgress) {
+              //   if (loadingProgress == null) return child;
+              //   return Center(
+              //     child: CircularProgressIndicator(
+              //       value: loadingProgress.expectedTotalBytes != null
+              //           ? loadingProgress.cumulativeBytesLoaded /
+              //               loadingProgress.expectedTotalBytes!
+              //           : null,
+              //     ),
+              //   );
+              // },
+              errorWidget: (context, error, stackTrace) =>
                   const Icon(Icons.error),
             );
           },
@@ -310,27 +311,27 @@ class DynamicItemWidget extends StatelessWidget {
         Stack(
           alignment: Alignment.bottomLeft,
           children: [
-            Image.network(
-              live.cover,
+            CachedNetworkImage(
+             imageUrl:  live.cover,
               fit: BoxFit.cover,
               height: 150,
               width: double.infinity,
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-                return Container(
-                  height: 150,
-                  color: Colors.red[100],
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded /
-                              loadingProgress.expectedTotalBytes!
-                          : null,
-                    ),
-                  ),
-                );
-              },
-              errorBuilder: (context, error, stackTrace) => Container(
+              // loadingBuilder: (context, child, loadingProgress) {
+              //   if (loadingProgress == null) return child;
+              //   return Container(
+              //     height: 150,
+              //     color: Colors.red[100],
+              //     child: Center(
+              //       child: CircularProgressIndicator(
+              //         value: loadingProgress.expectedTotalBytes != null
+              //             ? loadingProgress.cumulativeBytesLoaded /
+              //                 loadingProgress.expectedTotalBytes!
+              //             : null,
+              //       ),
+              //     ),
+              //   );
+              // },
+              errorWidget: (context, error, stackTrace) => Container(
                 height: 150,
                 color: Colors.red[100],
                 child: const Icon(Icons.error),
@@ -369,27 +370,27 @@ class DynamicItemWidget extends StatelessWidget {
         const SizedBox(height: 8.0),
         // 显示专栏封面
         if (article.covers.isNotEmpty)
-          Image.network(
-            article.covers.first,
+          CachedNetworkImage(
+          imageUrl:   article.covers.first,
             fit: BoxFit.cover,
             height: 150,
             width: double.infinity,
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return Container(
-                height: 150,
-                color: Colors.grey[300],
-                child: Center(
-                  child: CircularProgressIndicator(
-                    value: loadingProgress.expectedTotalBytes != null
-                        ? loadingProgress.cumulativeBytesLoaded /
-                            loadingProgress.expectedTotalBytes!
-                        : null,
-                  ),
-                ),
-              );
-            },
-            errorBuilder: (context, error, stackTrace) => Container(
+            // loadingBuilder: (context, child, loadingProgress) {
+            //   if (loadingProgress == null) return child;
+            //   return Container(
+            //     height: 150,
+            //     color: Colors.grey[300],
+            //     child: Center(
+            //       child: CircularProgressIndicator(
+            //         value: loadingProgress.expectedTotalBytes != null
+            //             ? loadingProgress.cumulativeBytesLoaded /
+            //                 loadingProgress.expectedTotalBytes!
+            //             : null,
+            //       ),
+            //     ),
+            //   );
+            // },
+            errorWidget: (context, error, stackTrace) => Container(
               height: 150,
               color: Colors.grey[300],
               child: const Icon(Icons.error),

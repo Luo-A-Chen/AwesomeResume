@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
@@ -169,7 +168,11 @@ class BlblProvider extends DataProvider {
   Future initHttp() async {
     Http.cleanOptions();
     final res = await Http.get('https://www.bilibili.com/');
-    final cookie = res.headers['set-cookie']?.join(';');
+    // TODO: 完善cookie处理
+    var cookies = res.headers['set-cookie'];
+    cookies?.add(('SESSDATA=xxx'));
+    final cookie = cookies?.join('; ');
+    print('cookie: $cookie');
     // 设置baseUrl和cookie
     Http.setOptions(BaseOptions(
       baseUrl: 'https://api.bilibili.com/x',

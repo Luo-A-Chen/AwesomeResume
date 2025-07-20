@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_app/api/nav_extension.dart';
@@ -191,8 +192,8 @@ class _BlblPlayerState extends State<BlblPlayer> {
                 ),
               )
             else if (widget.pic.isNotEmpty)
-              Image.network(
-                widget.pic,
+              CachedNetworkImage(
+               imageUrl:  widget.pic,
                 fit: BoxFit.contain, // 使用 contain 避免图片裁剪
                 width: double.infinity,
                 height: double.infinity,

@@ -1,21 +1,21 @@
 import 'package:dio/dio.dart';
 
 class Http {
-  static final _dio = Dio();
+  static final dio = Dio();
 
-  static void cleanOptions() => _dio.options = BaseOptions();
+  static void cleanOptions() => dio.options = BaseOptions();
 
   static Future<Response> get(
     String url, {
     Map<String, dynamic>? params,
     Map<String, String>? headers,
   }) async {
-    final response = await _dio.get(url,
+    final response = await dio.get(url,
         queryParameters: params, options: Options(headers: headers));
     return response;
   }
 
-  static void setBaseUrl(String baseUrl) => _dio.options.baseUrl = baseUrl;
+  static void setBaseUrl(String baseUrl) => dio.options.baseUrl = baseUrl;
 
-  static void setOptions(BaseOptions options) => _dio.options = options;
+  static void setOptions(BaseOptions options) => dio.options = options;
 }

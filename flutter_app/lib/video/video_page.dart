@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app/api/nav_extension.dart';
 import 'package:video_player/video_player.dart';
@@ -20,7 +21,12 @@ class VideoPage extends StatefulWidget {
   /// 视频封面地址
   final String imgUrl;
 
-  const VideoPage({super.key, required this.cid, required this.avid, required this.title, required this.imgUrl});
+  const VideoPage(
+      {super.key,
+      required this.cid,
+      required this.avid,
+      required this.title,
+      required this.imgUrl});
 
   @override
   State<VideoPage> createState() => _VideoPageState();
@@ -314,7 +320,7 @@ class _VideoPageState extends State<VideoPage> {
         width: _deviceWidth,
         height: _deviceWidth * _hWRatio,
         child: widget.imgUrl.isNotEmpty
-            ? Image.network(widget.imgUrl, fit: BoxFit.cover)
+            ? CachedNetworkImage(imageUrl: widget.imgUrl, fit: BoxFit.cover)
             : const Center(
                 child: CircularProgressIndicator(color: Colors.white)),
       );
