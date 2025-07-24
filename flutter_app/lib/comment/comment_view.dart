@@ -1,14 +1,15 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:loading_more_list/loading_more_list.dart';
 
-import '../api/http.dart';
-import 'reply.dart';
+import 'comment.dart';
+import 'comment_repository.dart';
 
 class ReplyView extends StatefulWidget {
   const ReplyView({super.key, required this.oid});
 
   /// 目标评论区id，视频评论区为视频avid
-  final int oid;
+  final num oid;
 
   @override
   State<ReplyView> createState() => _ReplyViewState();
@@ -16,88 +17,13 @@ class ReplyView extends StatefulWidget {
 
 class _ReplyViewState extends State<ReplyView>
     with AutomaticKeepAliveClientMixin {
-  List<Reply> _comments = [];
-  List<Reply> _hotComments = [];
-  bool _isLoading = true;
   String? _errorMessage;
-  int _pn = 1; // 当前页码
-  bool _hasMore = true;
-  final ScrollController _scrollController = ScrollController();
 
-  @override
-  void initState() {
-    super.initState();
-    _fetchComments();
-    _scrollController.addListener(() {
-      if (_scrollController.position.pixels ==
-              _scrollController.position.maxScrollExtent &&
-          _hasMore &&
-          !_isLoading) {
-        _fetchComments(loadMore: true);
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _fetchComments({bool loadMore = false}) async {
-    if (!loadMore) {
-      setState(() {
-        _isLoading = true;
-        _errorMessage = null;
-        _pn = 1;
-        _comments = [];
-        _hotComments = [];
-        _hasMore = true;
-      });
-    } else {
-      setState(() {
-        _isLoading = true; // 加载更多时也显示加载指示
-      });
-    }
-
-    // 根据B站API文档，type=1 表示视频稿件评论，oid为avid
-    // sort=0 按时间排序，sort=1 按点赞数，sort=2 按回复数
-    // 首次加载获取热评 (nohot=0)，后续加载不再获取热评 (nohot=1)
-    final nohot = _pn == 1 ? 0 : 1;
-
-    // 注意：B站API可能需要登录凭证(Cookie SESSDATA)才能获取完整数据或避免风控
-    // 此处为简化，使用未登录的请求，实际项目中可能需要处理登录和Cookie
-    final res = await Http.dio.get(
-        'https://api.bilibili.com/x/v2/reply/main?type=1&oid=${widget.oid}&sort=0&pn=$_pn&nohot=$nohot',
-        options: null);
-    print('评论请求头：\n${Http.dio.options.headers}');
-    print('评论请求结果：\n${res.data}');
-    final commentResponse = ReplyResponse.fromJson(res.data);
-    if (commentResponse.code == 0) {
-      setState(() {
-        if (_pn == 1) {
-          _hotComments = commentResponse.data.topReplies;
-        }
-        _comments = commentResponse.data.replies;
-        _pn++;
-        _hasMore = commentResponse.data.replies.length == 20; // 假设每页20条
-      });
-    } else {
-      _errorMessage = commentResponse.message;
-      _hasMore = false;
-    }
-
-    setState(() {
-      _isLoading = false;
-    });
-  }
+  late final _commentRepository = CommmentRepository(oid: widget.oid);
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
     if (_errorMessage != null) {
       return RefreshIndicator(
         onRefresh: () async => setState(() {}),
@@ -105,64 +31,45 @@ class _ReplyViewState extends State<ReplyView>
       );
     }
     List<Widget> slivers = [];
-    // 热门评论
-    if (_hotComments.isNotEmpty) {
-      slivers.add(const SliverToBoxAdapter(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-          child: Text('热门评论',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-        ),
-      ));
-      slivers.add(SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (context, index) => _buildCommentItem(_hotComments[index]),
-          childCount: _hotComments.length,
-        ),
-      ));
-      slivers.add(const SliverToBoxAdapter(
-          child: Divider(height: 20, thickness: 8, color: Color(0xFFF0F0F0))));
-    }
+    slivers.add(const SliverToBoxAdapter(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        child: Text('热门评论',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+      ),
+    ));
+    // TODO 热门评论
+    // slivers.add(SliverList(
+    //   delegate: SliverChildBuilderDelegate(
+    //     (context, index) => _buildCommentItem(_hotComments[index]),
+    //     childCount: _hotComments.length,
+    //   ),
+    // ));
+    slivers.add(const SliverToBoxAdapter(
+        child: Divider(height: 20, thickness: 8, color: Color(0xFFF0F0F0))));
 
     // 全部评论标题
     slivers.add(SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-        child: Text('全部评论 (${_comments.length})',
+        child: Text('全部评论',
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
       ),
     ));
 
     // 评论列表
-    if (_comments.isEmpty && !_isLoading) {
-      slivers.add(const SliverFillRemaining(
-        child: Center(child: Text('暂无评论')),
-      ));
-    } else {
-      slivers.add(SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            if (index < _comments.length) {
-              return _buildCommentItem(_comments[index]);
-            }
-            // 加载更多指示器
-            if (_hasMore) {
-              return const Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Center(child: CircularProgressIndicator()),
-              );
-            }
-            return null; // 没有更多了
-          },
-          childCount: _comments.length + (_hasMore ? 1 : 0),
-        ),
-      ));
-    }
+
+    slivers.add(LoadingMoreSliverList(
+      SliverListConfig(
+        sourceList: _commentRepository,
+        itemBuilder: (context, reply, index) {
+          return _buildCommentItem(reply);
+        },
+      ),
+    ));
     return RefreshIndicator(
-      onRefresh: () => _fetchComments(),
-      child: CustomScrollView(
-        physics: const ClampingScrollPhysics(),
-        controller: _scrollController,
+      onRefresh: _commentRepository.refresh,
+      child: LoadingMoreCustomScrollView(
         slivers: slivers,
       ),
     );
@@ -178,7 +85,7 @@ class _ReplyViewState extends State<ReplyView>
         children: [
           CircleAvatar(
             backgroundImage: CachedNetworkImageProvider(
-              comment.member!.avatar!,
+              comment.member.avatar,
             ),
             radius: 20,
           ),
@@ -201,7 +108,7 @@ class _ReplyViewState extends State<ReplyView>
                       Padding(
                         padding: const EdgeInsets.only(left: 4.0),
                         child: Text(
-                          comment.member.vip!.label.text,
+                          comment.member.vip.label.text,
                           style: TextStyle(
                               fontSize: 10,
                               color: Colors.pink,

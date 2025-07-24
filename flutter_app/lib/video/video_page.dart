@@ -4,7 +4,7 @@ import 'package:extended_nested_scroll_view/extended_nested_scroll_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app/api/nav_extension.dart';
 import 'package:video_player/video_player.dart';
-import '../reply/reply_view.dart';
+import '../comment/comment_view.dart';
 import 'blbl_player.dart';
 import 'info_view.dart';
 import 'video_urls.dart';

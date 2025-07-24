@@ -1,18 +1,18 @@
-class ReplyResponse {
+class CommentResponse {
   final int code;
   final String message;
   final int ttl;
   final Data data;
 
-  ReplyResponse({
+  CommentResponse({
     required this.code,
     required this.message,
     required this.ttl,
     required this.data,
   });
 
-  factory ReplyResponse.fromJson(Map<String, dynamic> json) {
-    return ReplyResponse(
+  factory CommentResponse.fromJson(Map<String, dynamic> json) {
+    return CommentResponse(
       code: json['code'],
       message: json['message'],
       ttl: json['ttl'],
@@ -43,7 +43,7 @@ class Data {
     required this.replies,
     this.top,
     required this.topReplies,
-     this.upSelection,
+    this.upSelection,
     required this.effects,
     required this.assist,
     required this.blacklist,
@@ -53,7 +53,7 @@ class Data {
     required this.note,
     this.esportsGradeCard,
     this.callbacks,
-     this.contextFeature,
+    this.contextFeature,
   });
 
   factory Data.fromJson(Map<String, dynamic> json) {
@@ -61,7 +61,8 @@ class Data {
       cursor: Cursor.fromJson(json['cursor']),
       replies: List<Reply>.from(json['replies'].map((x) => Reply.fromJson(x))),
       top: json['top'] != null ? Top.fromJson(json['top']) : null,
-      topReplies: List<Reply>.from(json['top_replies'].map((x) => Reply.fromJson(x))),
+      topReplies:
+          List<Reply>.from(json['top_replies'].map((x) => Reply.fromJson(x))),
       // upSelection: UpSelection.fromJson(json['up_selection']),
       effects: Effects.fromJson(json['effects']),
       assist: json['assist'],
@@ -78,16 +79,27 @@ class Data {
 }
 
 class Cursor {
-  final bool isBegin;
-  final int prev;
-  final int next;
-  final bool isEnd;
-  final int mode;
-  final String modeText;
+  /// 全部评论条数
   final int allCount;
+  /// 是否为第一页
+  final bool isBegin;
+  /// 上页页码
+  final int prev;
+  /// 下页页码
+  final int next;
+  /// 是否为最后页
+  final bool isEnd;
+  /// 排序方式
+  final int mode;
+  /// 排序方式文本描述 
+  final String modeText;
+  /// 支持的排序方式
   final List<int> supportMode;
+  /// 评论区类型名
   final String name;
+  /// 用于下一次请求的分页信息
   final PaginationReply paginationReply;
+  /// 会话id
   final String sessionId;
 
   Cursor({
@@ -103,6 +115,22 @@ class Cursor {
     required this.paginationReply,
     required this.sessionId,
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'is_begin': isBegin,
+      'prev': prev,
+      'next': next,
+      'is_end': isEnd,
+      'mode': mode,
+      'mode_text': modeText,
+      'all_count': allCount,
+      'support_mode': supportMode,
+      'name': name,
+      'pagination_reply': paginationReply.toJson(),
+      'session_id': sessionId,
+    };
+  }
 
   factory Cursor.fromJson(Map<String, dynamic> json) {
     return Cursor(
@@ -132,6 +160,12 @@ class PaginationReply {
     return PaginationReply(
       nextOffset: json['next_offset'],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'next_offset': nextOffset,
+    };
   }
 }
 
@@ -193,7 +227,7 @@ class Reply {
     required this.action,
     required this.member,
     required this.content,
-     this.replies,
+    this.replies,
     required this.assist,
     required this.upAction,
     required this.invisible,
@@ -281,8 +315,8 @@ class Member {
     required this.officialVerify,
     required this.vip,
     this.fansDetail,
-     this.userSailing,
-     this.userSailingV2,
+    this.userSailing,
+    this.userSailingV2,
     required this.isContractor,
     required this.contractDesc,
     this.nftInteraction,
@@ -588,7 +622,7 @@ class Layer {
   Layer({
     required this.visible,
     required this.generalSpec,
-     this.layerConfig,
+    this.layerConfig,
     required this.resource,
   });
 
@@ -681,7 +715,7 @@ class LayerConfig {
   LayerConfig({
     required this.tags,
     required this.isCritical,
-     this.layerMask,
+    this.layerMask,
   });
 
   factory LayerConfig.fromJson(Map<String, dynamic> json) {
@@ -795,7 +829,7 @@ class Resource {
 
   Resource({
     required this.resType,
-     this.resImage,
+    this.resImage,
   });
 
   factory Resource.fromJson(Map<String, dynamic> json) {
@@ -867,7 +901,7 @@ class Content {
   Content({
     required this.message,
     required this.members,
-     this.emote,
+    this.emote,
     required this.jumpUrl,
     required this.maxLine,
   });
@@ -892,7 +926,8 @@ class Emote {
 
   factory Emote.fromJson(Map<String, dynamic> json) {
     return Emote(
-      emoteDetail: Map.fromEntries(json.entries.map((e) => MapEntry(e.key, EmoteDetail.fromJson(e.value)))),
+      emoteDetail: Map.fromEntries(json.entries
+          .map((e) => MapEntry(e.key, EmoteDetail.fromJson(e.value)))),
     );
   }
 }
@@ -980,7 +1015,7 @@ class ReplyControl {
   ReplyControl({
     required this.maxLine,
     required this.timeDesc,
-     this.location,
+    this.location,
   });
 
   factory ReplyControl.fromJson(Map<String, dynamic> json) {
