@@ -4,20 +4,19 @@ import 'package:flutter/services.dart';
 import 'package:flutter_app/api/nav_extension.dart';
 import 'package:video_player/video_player.dart';
 
-import 'video_player_cntlr.dart';
-import 'video_urls.dart';
-
 class VidioPlayView extends StatefulWidget {
   final int avid; // 视频的avid
   final int cid; // 视频的cid
   final bool isfullScreen; // 是否全屏
   final String? title; // 用于非全屏时顶部返回条的标题
+  final VideoPlayerController playerCntlr;
 
   const VidioPlayView({
     super.key,
     required this.avid,
     required this.cid,
     required this.isfullScreen,
+    required this.playerCntlr,
     this.title,
   });
 
@@ -28,35 +27,42 @@ class VidioPlayView extends StatefulWidget {
 class _VidioPlayViewState extends State<VidioPlayView> {
   bool _showControls = false;
   Timer? _controlsTimer;
+  Duration _position = Duration.zero;
+  bool _isPlaying = true;
+  bool _isBuffering = true;
+  bool _isDragging = false;
 
   @override
   void initState() {
     super.initState();
-    _loadVedio();
+    widget.playerCntlr.initialize().then((_) {
+      widget.playerCntlr.addListener(_onControllerUpdated);
+      widget.playerCntlr.play();
+    });
   }
 
-  Future<void> _loadVedio() async {
-    final data = await VideoUrls.getVideoStreamUrl(
-      avid: widget.avid,
-      cid: widget.cid,
-      fnval: 1,
-    );
-    final urlMap = VideoUrls.parseVideoUrl(data);
-    if (urlMap == null || urlMap['videoUrl'] == null) {
-      return;
+  @override
+  void dispose() {
+    _controlsTimer?.cancel();
+    widget.playerCntlr.removeListener(_onControllerUpdated);
+    super.dispose();
+  }
+
+  void _onControllerUpdated() {
+    var position = widget.playerCntlr.value.position;
+    // 这里不能用==判断位置
+    bool isBuffering =
+        _isPlaying && position - _position < const Duration(milliseconds: 10);
+    if (_isBuffering != isBuffering) {
+      setState(() {
+        _isBuffering = isBuffering;
+      });
     }
-    final videoUrl = urlMap['videoUrl']!;
-    print('获取到视频URL: $videoUrl');
-    videoPlayerCntlr = VideoPlayerController.networkUrl(
-      Uri.parse(videoUrl),
-      httpHeaders: {
-        'Referer': 'https://www.bilibili.com',
-        'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-      },
-    );
-    await videoPlayerCntlr.initialize();
-    await videoPlayerCntlr.play();
+    if (_position.inSeconds != position.inSeconds) {
+      setState(() {
+        _position = position;
+      });
+    }
   }
 
   Future<void> _exitFullScreen() async {
@@ -74,7 +80,7 @@ class _VidioPlayViewState extends State<VidioPlayView> {
 
   void _enterFullScreen() async {
     // 如果视频是横屏内容，需要锁定屏幕方向为横向
-    if (videoPlayerCntlr.value.aspectRatio > 1) {
+    if (widget.playerCntlr.value.aspectRatio > 1) {
       print('锁定屏幕方向为横向');
       await SystemChrome.setPreferredOrientations([
         DeviceOrientation.landscapeLeft,
@@ -97,6 +103,7 @@ class _VidioPlayViewState extends State<VidioPlayView> {
             isfullScreen: true,
             avid: widget.avid,
             cid: widget.cid,
+            playerCntlr: widget.playerCntlr,
           ),
         ),
       ),
@@ -139,154 +146,160 @@ class _VidioPlayViewState extends State<VidioPlayView> {
     return [if (hours > 0) hours, minutes, seconds].map(twoDigits).join(':');
   }
 
-  @override
-  void dispose() {
-    _controlsTimer?.cancel();
-    super.dispose();
+  void _togglePlay() {
+    setState(() {
+      _isPlaying = !_isPlaying;
+    });
+    _isPlaying ? widget.playerCntlr.play() : widget.playerCntlr.pause();
   }
 
   @override
   Widget build(BuildContext context) {
-    final deviceWidth = MediaQuery.of(context).size.width;
-    // 宽高比，默认为16:9，如果视频已初始化，则使用视频的宽高比
-    final aspectRatio = videoPlayerCntlr.value.isInitialized
-        ? videoPlayerCntlr.value.aspectRatio
-        : 16 / 9;
-
     // 手动构建播放器UI
-    return GestureDetector(
-      onTap: _toggleControls,
-      child: Container(
-        color: Colors.black,
-        width:
-            widget.isfullScreen ? deviceWidth : double.infinity, // 全屏时宽度为设备宽度
-        height: widget.isfullScreen
-            ? MediaQuery.of(context).size.height
-            : (widget.isfullScreen
-                ? null
-                : deviceWidth / aspectRatio), // 非全屏时根据宽高比计算高度
-        alignment: Alignment.center,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            if (videoPlayerCntlr.value.hasError)
-              const Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '视频加载失败',
-                      style: TextStyle(color: Colors.white),
-                      textAlign: TextAlign.center,
-                    ),
-                    SizedBox(height: 16),
-                  ],
-                ),
-              )
-
-            // 视频播放器
-            else
-              AspectRatio(
-                aspectRatio: videoPlayerCntlr.value.aspectRatio,
-                child: VideoPlayer(videoPlayerCntlr),
-              ),
-            // 控制界面
-            if (_showControls &&
-                videoPlayerCntlr.value.isInitialized &&
-                !videoPlayerCntlr.value.hasError) ...[
-              // 播放/暂停按钮 (居中)
-              Center(
-                child: IconButton(
-                  icon: Icon(
-                    videoPlayerCntlr.value.isPlaying
-                        ? Icons.pause
-                        : Icons.play_arrow,
-                    color: Colors.white,
-                    size: 50,
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        GestureDetector(
+          onTap: _toggleControls,
+          onDoubleTap: _togglePlay,
+          onHorizontalDragStart: (details) => setState(() {
+            _isDragging = true;
+          }),
+          onHorizontalDragEnd: (details) => setState(() {
+            _isDragging = false;
+          }),
+          onHorizontalDragUpdate: (details) {
+            // 处理水平拖动以调整进度
+            final position = widget.playerCntlr.value.position;
+            final duration = widget.playerCntlr.value.duration;
+            final delta = details.delta.dx / 1; // TODO 调整灵敏度
+            final newPosition = position + Duration(seconds: delta.round());
+            if (newPosition < duration && newPosition >= Duration.zero) {
+              widget.playerCntlr.seekTo(newPosition);
+            }
+          },
+          behavior: HitTestBehavior.opaque,
+          child: widget.playerCntlr.value.hasError
+              ? const Center(
+                  child: Text(
+                    '视频加载失败',
+                    style: TextStyle(color: Colors.white),
+                    textAlign: TextAlign.center,
                   ),
-                  onPressed: () {
-                    setState(() {
-                      videoPlayerCntlr.value.isPlaying
-                          ? videoPlayerCntlr.pause()
-                          : videoPlayerCntlr.play();
-                    });
-                  },
-                ),
+                )
+              : VideoPlayer(widget.playerCntlr),
+        ),
+        if (_isDragging)
+          Center(
+            child: Container(
+              width: 100,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.black54,
+                borderRadius: BorderRadius.circular(8),
               ),
+              alignment: Alignment.center,
+              child: Text(
+                '${_formatDuration(widget.playerCntlr.value.position)}/${_formatDuration(widget.playerCntlr.value.duration)}',
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
+          )
+        else if (_isBuffering)
+          const Center(child: CircularProgressIndicator()),
+        // 控制界面
+        if (_showControls)
+          ..._hub()
+        else
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 7, // 和哔哩哔哩比较一致
+            child: SizedBox(
+              child: VideoProgressIndicator(
+                widget.playerCntlr,
+                allowScrubbing: false,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
 
-              // 顶部控制栏
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  color: Colors.black45,
-                  height: 40,
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.white),
-                        onPressed: _exitFullScreen,
-                      ),
-                      Expanded(
-                        child: Text(
-                          widget.title ?? '',
-                          style: const TextStyle(color: Colors.white),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      // 可以在这里添加其他按钮，例如投屏
-                    ],
-                  ),
+  List _hub() {
+    return [
+      // 顶部控制栏
+      Positioned(
+        top: 0,
+        left: 0,
+        right: 0,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          color: Colors.black12,
+          height: 40,
+          child: Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: _exitFullScreen,
+              ),
+              Expanded(
+                child: Text(
+                  widget.title ?? '',
+                  style: const TextStyle(color: Colors.white),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-
-              // 底部控制栏
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  color: Colors.black45,
-                  height: 40,
-                  child: Row(
-                    children: [
-                      Text(
-                        _formatDuration(videoPlayerCntlr.value.position),
-                        style:
-                            const TextStyle(color: Colors.white, fontSize: 12),
-                      ),
-                      Expanded(
-                        child: VideoProgressIndicator(
-                          videoPlayerCntlr,
-                          allowScrubbing: true,
-                        ),
-                      ),
-                      Text(
-                        _formatDuration(videoPlayerCntlr.value.duration),
-                        style:
-                            const TextStyle(color: Colors.white, fontSize: 12),
-                      ),
-                      IconButton(
-                        icon: Icon(
-                          widget.isfullScreen
-                              ? Icons.fullscreen_exit
-                              : Icons.fullscreen,
-                          color: Colors.white,
-                        ),
-                        onPressed: _toggleFullScreen,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              // 可以在这里添加其他按钮，例如投屏
             ],
-          ],
+          ),
         ),
       ),
-    );
+
+      // 底部控制栏
+      Positioned(
+        bottom: 0,
+        left: 0,
+        right: 0,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          color: Colors.black12,
+          height: 40,
+          child: Row(
+            children: [
+              IconButton(
+                icon: Icon(
+                  _isPlaying ? Icons.pause : Icons.play_arrow,
+                  color: Colors.white,
+                ),
+                onPressed: _togglePlay,
+              ),
+              Expanded(
+                child: VideoProgressIndicator(
+                  widget.playerCntlr,
+                  allowScrubbing: true,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                ),
+              ),
+              Text(
+                '${_formatDuration(widget.playerCntlr.value.position)}/${_formatDuration(widget.playerCntlr.value.duration)}',
+                style: const TextStyle(color: Colors.white, fontSize: 12),
+              ),
+              // IconButton(
+              //   icon: Icon(
+              //     widget.isfullScreen
+              //         ? Icons.fullscreen_exit
+              //         : Icons.fullscreen,
+              //     color: Colors.white,
+              //   ),
+              //   onPressed: _toggleFullScreen,
+              // ),
+            ],
+          ),
+        ),
+      ),
+    ];
   }
 }

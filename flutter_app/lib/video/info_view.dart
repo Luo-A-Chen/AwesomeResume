@@ -1,10 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_app/api/nav_extension.dart';
-import 'package:video_player/video_player.dart';
 
 import '../api/http.dart';
-import 'video_page.dart';
 import 'video_response.dart';
 
 class InfoView extends StatefulWidget {
@@ -12,10 +9,12 @@ class InfoView extends StatefulWidget {
     super.key,
     required this.avid,
     required this.title,
+    required this.onTapVideo,
   });
 
   final int avid;
   final String title;
+  final ValueChanged<Video> onTapVideo;
 
   @override
   State<InfoView> createState() => _InfoViewState();
@@ -117,13 +116,7 @@ class _InfoViewState extends State<InfoView>
 
   Widget _buildRecommendItem(Video video) {
     return InkWell(
-      onTap: () {
-        context.push(VideoPage(
-          avid: video.avid,
-          title: video.title,
-          cid: video.cid,
-        ));
-      },
+      onTap: () => widget.onTapVideo(video),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         child: Row(

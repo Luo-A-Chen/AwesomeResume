@@ -37,7 +37,10 @@ class _RestartableAppState extends State<RestartableApp> {
           builder: f_toast.FToastBuilder(),
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
-            colorSchemeSeed: const Color(0xFFFF5F8F), // 主题色
+            colorScheme: ColorScheme.fromSwatch(
+              primarySwatch: Colors.pink,
+            ),
+            // colorSchemeSeed: const Color.fromARGB(255, 249, 174, 196), // 主题色
             scaffoldBackgroundColor:
                 const Color.fromRGBO(238, 238, 238, 1), // 背景色
           ),
