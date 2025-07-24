@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:loading_more_list/loading_more_list.dart';
 
 import 'comment.dart';
@@ -7,22 +8,32 @@ class CommmentRepository extends LoadingMoreBase<Reply> {
   String nextOffset = '';
   bool _hasMore = false;
   final num oid;
+  CommentRequestMode mode = CommentRequestMode.hot;
 
   CommmentRepository({required this.oid});
 
   @override
   Future<bool> loadData([bool isLoadMoreAction = false]) async {
     var success = false;
-    print('加载第 页评论');
     var replyRequest = CommentRequest();
-    final commentRes =
-        await replyRequest.comments(oid: oid, nextOffset: nextOffset);
-    nextOffset = commentRes.data.cursor.paginationReply.nextOffset ?? '';
-    print('评论请求测试');
-    print(commentRes.data.cursor.toJson());
-    _hasMore = !commentRes.data.cursor.isEnd;
-    addAll(commentRes.data.replies);
-    success = true;
+    try {
+      final commentRes = await replyRequest.comments(
+        oid: oid,
+        nextOffset: nextOffset,
+        mode: mode,
+      );
+      nextOffset = commentRes.data.cursor.paginationReply.nextOffset ?? '';
+      _hasMore = !commentRes.data.cursor.isEnd;
+      addAll(commentRes.data.replies);
+      success = true;
+    } on DioException catch (e) {
+      print('评论加载失败: $e');
+      print(e.response?.data);
+      _hasMore = true;
+    } catch (e) {
+      print('评论加载失败: $e');
+      _hasMore = true;
+    }
     return success;
   }
 
@@ -32,6 +43,7 @@ class CommmentRepository extends LoadingMoreBase<Reply> {
   @override
   Future<bool> refresh([notifyStateChanged = true]) async {
     _hasMore = true;
+    nextOffset = '';
     return await super.refresh(notifyStateChanged);
   }
 }

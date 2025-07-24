@@ -6,12 +6,14 @@ import 'api/toast.dart';
 import 'api/local_storage.dart';
 import 'bottom_nav/main_page.dart';
 import 'settings/settings.dart';
+import 'user/auth_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await LocalStorage.initSP(); // 必须在运行软件前初始化本地存储
   await Settings.loadFromLocal(); // 从本地加载设置
   await Settings.instance.dataProvider?.initHttp(); // 初始化网络请求
+  await AuthProvider().init(); // TODO 暂时只针对blbl
   runApp(RestartableApp(keyNotifier: Settings.instance.appKeyNotifier));
 }
 

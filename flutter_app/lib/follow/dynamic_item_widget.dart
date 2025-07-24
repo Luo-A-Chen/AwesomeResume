@@ -67,7 +67,6 @@ class DynamicItemWidget extends StatelessWidget {
               cid: videoInfo['cid'],
               avid: int.parse(archive.aid),
               title: archive.title,
-              imgUrl: archive.cover,
             ));
           }
         },

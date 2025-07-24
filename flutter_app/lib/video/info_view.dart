@@ -11,12 +11,10 @@ class InfoView extends StatefulWidget {
   const InfoView({
     super.key,
     required this.avid,
-    required this.controller,
     required this.title,
   });
 
   final int avid;
-  final VideoPlayerController controller;
   final String title;
 
   @override
@@ -120,19 +118,11 @@ class _InfoViewState extends State<InfoView>
   Widget _buildRecommendItem(Video video) {
     return InkWell(
       onTap: () {
-        widget.controller.pause(); // TODO: 控制器有可能没有初始化
-        context
-            .push(VideoPage(
+        context.push(VideoPage(
           avid: video.avid,
           title: video.title,
-          imgUrl: video.pic,
           cid: video.cid,
-        ))
-            .then((value) {
-          if (mounted) {
-            widget.controller.play();
-          }
-        });
+        ));
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),

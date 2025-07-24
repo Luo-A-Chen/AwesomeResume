@@ -1,31 +1,63 @@
 import 'dart:async';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_app/api/nav_extension.dart';
 import 'package:video_player/video_player.dart';
 
-class BlblPlayer extends StatefulWidget {
-  final VideoPlayerController controller;
-  final String pic;
+import 'video_player_cntlr.dart';
+import 'video_urls.dart';
+
+class VidioPlayView extends StatefulWidget {
+  final int avid; // 视频的avid
+  final int cid; // 视频的cid
   final bool isfullScreen; // 是否全屏
   final String? title; // 用于非全屏时顶部返回条的标题
 
-  const BlblPlayer({
+  const VidioPlayView({
     super.key,
-    required this.controller,
-    required this.pic,
+    required this.avid,
+    required this.cid,
     required this.isfullScreen,
     this.title,
   });
 
   @override
-  State<BlblPlayer> createState() => _BlblPlayerState();
+  State<VidioPlayView> createState() => _VidioPlayViewState();
 }
 
-class _BlblPlayerState extends State<BlblPlayer> {
+class _VidioPlayViewState extends State<VidioPlayView> {
   bool _showControls = false;
   Timer? _controlsTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVedio();
+  }
+
+  Future<void> _loadVedio() async {
+    final data = await VideoUrls.getVideoStreamUrl(
+      avid: widget.avid,
+      cid: widget.cid,
+      fnval: 1,
+    );
+    final urlMap = VideoUrls.parseVideoUrl(data);
+    if (urlMap == null || urlMap['videoUrl'] == null) {
+      return;
+    }
+    final videoUrl = urlMap['videoUrl']!;
+    print('获取到视频URL: $videoUrl');
+    videoPlayerCntlr = VideoPlayerController.networkUrl(
+      Uri.parse(videoUrl),
+      httpHeaders: {
+        'Referer': 'https://www.bilibili.com',
+        'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+      },
+    );
+    await videoPlayerCntlr.initialize();
+    await videoPlayerCntlr.play();
+  }
 
   Future<void> _exitFullScreen() async {
     // 退出全屏时，恢复屏幕方向
@@ -42,7 +74,7 @@ class _BlblPlayerState extends State<BlblPlayer> {
 
   void _enterFullScreen() async {
     // 如果视频是横屏内容，需要锁定屏幕方向为横向
-    if (widget.controller.value.aspectRatio > 1) {
+    if (videoPlayerCntlr.value.aspectRatio > 1) {
       print('锁定屏幕方向为横向');
       await SystemChrome.setPreferredOrientations([
         DeviceOrientation.landscapeLeft,
@@ -60,11 +92,11 @@ class _BlblPlayerState extends State<BlblPlayer> {
           onPopInvoked: (didPop) {
             if (!didPop) _exitFullScreen();
           },
-          child: BlblPlayer(
-            controller: widget.controller,
-            pic: widget.pic,
+          child: VidioPlayView(
             title: widget.title,
             isfullScreen: true,
+            avid: widget.avid,
+            cid: widget.cid,
           ),
         ),
       ),
@@ -78,26 +110,6 @@ class _BlblPlayerState extends State<BlblPlayer> {
     } else {
       // 进入全屏
       _enterFullScreen();
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    widget.controller.addListener(_onControllerUpdated);
-    _toggleControls();
-  }
-
-  void _onControllerUpdated() {
-    // 可以在这里处理 controller 的其他状态更新，例如错误
-    if (widget.controller.value.hasError) {
-      if (mounted) {
-        setState(() {}); // 更新UI以显示错误信息
-      }
-    }
-    // 确保在 controller 更新时刷新状态，例如播放/暂停按钮
-    if (mounted) {
-      setState(() {});
     }
   }
 
@@ -127,33 +139,19 @@ class _BlblPlayerState extends State<BlblPlayer> {
     return [if (hours > 0) hours, minutes, seconds].map(twoDigits).join(':');
   }
 
-  // @override
-  // void didUpdateWidget(covariant BlblPlayer oldWidget) {
-  //   super.didUpdateWidget(oldWidget);
-  //   if (widget.controller != oldWidget.controller) {
-  //     oldWidget.controller.removeListener(_onControllerUpdated);
-  //     widget.controller.addListener(_onControllerUpdated);
-  //     if (mounted) {
-  //       setState(() {}); // 确保在controller改变时刷新UI
-  //     }
-  //   }
-  // }
-
   @override
   void dispose() {
     _controlsTimer?.cancel();
-    widget.controller.removeListener(_onControllerUpdated);
-    // _chewieController?.dispose(); // 如果使用Chewie
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final controller = widget.controller;
     final deviceWidth = MediaQuery.of(context).size.width;
     // 宽高比，默认为16:9，如果视频已初始化，则使用视频的宽高比
-    final aspectRatio =
-        controller.value.isInitialized ? controller.value.aspectRatio : 16 / 9;
+    final aspectRatio = videoPlayerCntlr.value.isInitialized
+        ? videoPlayerCntlr.value.aspectRatio
+        : 16 / 9;
 
     // 手动构建播放器UI
     return GestureDetector(
@@ -171,13 +169,7 @@ class _BlblPlayerState extends State<BlblPlayer> {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            // 视频播放器
-            if (controller.value.isInitialized)
-              AspectRatio(
-                aspectRatio: controller.value.aspectRatio,
-                child: VideoPlayer(controller),
-              )
-            else if (controller.value.hasError)
+            if (videoPlayerCntlr.value.hasError)
               const Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -191,34 +183,32 @@ class _BlblPlayerState extends State<BlblPlayer> {
                   ],
                 ),
               )
-            else if (widget.pic.isNotEmpty)
-              CachedNetworkImage(
-               imageUrl:  widget.pic,
-                fit: BoxFit.contain, // 使用 contain 避免图片裁剪
-                width: double.infinity,
-                height: double.infinity,
-              )
-            else
-              const Center(
-                  child: CircularProgressIndicator(color: Colors.white)),
 
+            // 视频播放器
+            else
+              AspectRatio(
+                aspectRatio: videoPlayerCntlr.value.aspectRatio,
+                child: VideoPlayer(videoPlayerCntlr),
+              ),
             // 控制界面
             if (_showControls &&
-                controller.value.isInitialized &&
-                !controller.value.hasError) ...[
+                videoPlayerCntlr.value.isInitialized &&
+                !videoPlayerCntlr.value.hasError) ...[
               // 播放/暂停按钮 (居中)
               Center(
                 child: IconButton(
                   icon: Icon(
-                    controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
+                    videoPlayerCntlr.value.isPlaying
+                        ? Icons.pause
+                        : Icons.play_arrow,
                     color: Colors.white,
                     size: 50,
                   ),
                   onPressed: () {
                     setState(() {
-                      controller.value.isPlaying
-                          ? controller.pause()
-                          : controller.play();
+                      videoPlayerCntlr.value.isPlaying
+                          ? videoPlayerCntlr.pause()
+                          : videoPlayerCntlr.play();
                     });
                   },
                 ),
@@ -265,38 +255,18 @@ class _BlblPlayerState extends State<BlblPlayer> {
                   child: Row(
                     children: [
                       Text(
-                        _formatDuration(controller.value.position),
+                        _formatDuration(videoPlayerCntlr.value.position),
                         style:
                             const TextStyle(color: Colors.white, fontSize: 12),
                       ),
                       Expanded(
-                        child: SliderTheme(
-                          data: SliderTheme.of(context).copyWith(
-                            trackHeight: 2.0,
-                            thumbShape: const RoundSliderThumbShape(
-                                enabledThumbRadius: 6.0),
-                            overlayShape: const RoundSliderOverlayShape(
-                                overlayRadius: 12.0),
-                          ),
-                          child: Slider(
-                            value: controller.value.position.inMilliseconds >
-                                    controller.value.duration.inMilliseconds
-                                ? controller.value.duration.inMilliseconds
-                                    .toDouble()
-                                : controller.value.position.inMilliseconds
-                                    .toDouble(),
-                            min: 0.0,
-                            max: controller.value.duration.inMilliseconds
-                                .toDouble(),
-                            onChanged: (value) {
-                              controller.seekTo(
-                                  Duration(milliseconds: value.toInt()));
-                            },
-                          ),
+                        child: VideoProgressIndicator(
+                          videoPlayerCntlr,
+                          allowScrubbing: true,
                         ),
                       ),
                       Text(
-                        _formatDuration(controller.value.duration),
+                        _formatDuration(videoPlayerCntlr.value.duration),
                         style:
                             const TextStyle(color: Colors.white, fontSize: 12),
                       ),

@@ -227,12 +227,11 @@ class _SearchPageState extends State<SearchPage>
             cid: videoInfo['cid'],
             avid: item.aid,
             title: item.title,
-            imgUrl: item.pic,
           ));
         }
       });
     } else {
-      Toast.showWarning('暂未实现该功能');
+      Toast.unimplemented();
     }
   }
 }

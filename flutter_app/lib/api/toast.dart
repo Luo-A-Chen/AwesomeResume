@@ -13,6 +13,8 @@ class Toast {
     throw UnimplementedError('当前服务器未实现该功能');
   }
 
+  static unimplemented() => showWarning('待开发');
+
   static void showWarning(String message) {
     _fToast.showToast(
       gravity: ToastGravity.CENTER,
