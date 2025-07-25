@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_app/api/nav_extension.dart';
 import 'package:video_player/video_player.dart';
+
+import '../api/toast.dart';
 
 class VidioPlayView extends StatefulWidget {
   final int avid; // 视频的avid
@@ -31,6 +34,7 @@ class _VidioPlayViewState extends State<VidioPlayView> {
   bool _isPlaying = true;
   bool _isBuffering = true;
   bool _isDragging = false;
+  PointerDeviceKind? _detailsKind; // 可以判断是鼠标还是触屏等
 
   @override
   void initState() {
@@ -111,19 +115,21 @@ class _VidioPlayViewState extends State<VidioPlayView> {
   }
 
   void _toggleFullScreen() async {
-    if (widget.isfullScreen) {
-      // 退出全屏
-      await _exitFullScreen();
-    } else {
-      // 进入全屏
-      _enterFullScreen();
-    }
+    Toast.showWarning('全屏切换待开发');
+    // TODO 全屏功能
+    // if (widget.isfullScreen) {
+    //   // 退出全屏
+    //   await _exitFullScreen();
+    // } else {
+    //   // 进入全屏
+    //   _enterFullScreen();
+    // }
   }
 
-  void _toggleControls() {
+  void _toggleControls([bool? show]) {
     if (!mounted) return;
     setState(() {
-      _showControls = !_showControls;
+      _showControls = show ?? !_showControls;
     });
 
     _controlsTimer?.cancel();
@@ -155,75 +161,93 @@ class _VidioPlayViewState extends State<VidioPlayView> {
 
   @override
   Widget build(BuildContext context) {
-    // 手动构建播放器UI
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        GestureDetector(
-          onTap: _toggleControls,
-          onDoubleTap: _togglePlay,
-          onHorizontalDragStart: (details) => setState(() {
-            _isDragging = true;
-          }),
-          onHorizontalDragEnd: (details) => setState(() {
-            _isDragging = false;
-          }),
-          onHorizontalDragUpdate: (details) {
-            // 处理水平拖动以调整进度
-            final position = widget.playerCntlr.value.position;
-            final duration = widget.playerCntlr.value.duration;
-            final delta = details.delta.dx / 1; // TODO 调整灵敏度
-            final newPosition = position + Duration(seconds: delta.round());
-            if (newPosition < duration && newPosition >= Duration.zero) {
-              widget.playerCntlr.seekTo(newPosition);
-            }
-          },
-          behavior: HitTestBehavior.opaque,
-          child: widget.playerCntlr.value.hasError
-              ? const Center(
-                  child: Text(
-                    '视频加载失败',
-                    style: TextStyle(color: Colors.white),
-                    textAlign: TextAlign.center,
-                  ),
-                )
-              : VideoPlayer(widget.playerCntlr),
-        ),
-        if (_isDragging)
-          Center(
-            child: Container(
-              width: 100,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.black54,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                '${_formatDuration(widget.playerCntlr.value.position)}/${_formatDuration(widget.playerCntlr.value.duration)}',
-                style: const TextStyle(color: Colors.white),
-              ),
-            ),
-          )
-        else if (_isBuffering)
-          const Center(child: CircularProgressIndicator()),
-        // 控制界面
-        if (_showControls)
-          ..._hub()
-        else
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: 7, // 和哔哩哔哩比较一致
-            child: SizedBox(
-              child: VideoProgressIndicator(
-                widget.playerCntlr,
-                allowScrubbing: false,
-              ),
-            ),
+    // MouseRegion包裹在Stack外层，防止GestureDetector与_hub竞争监听
+    return MouseRegion(
+      onEnter: (_) {
+        if (_detailsKind != PointerDeviceKind.mouse) return;
+        _toggleControls(true);
+      },
+      onExit: (_) {
+        if (_detailsKind != PointerDeviceKind.mouse) return;
+        _toggleControls(false);
+      },
+      onHover: (_) {
+        if (_detailsKind != PointerDeviceKind.mouse) return;
+        _toggleControls(true);
+      },
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          GestureDetector(
+            onTap: _detailsKind == PointerDeviceKind.mouse
+                ? _togglePlay
+                : _toggleControls,
+            onTapDown: (details) => _detailsKind = details.kind,
+            onDoubleTap: _detailsKind == PointerDeviceKind.mouse
+                ? _toggleFullScreen
+                : _togglePlay,
+            onHorizontalDragStart: (details) => setState(() {
+              _isDragging = true;
+            }),
+            onHorizontalDragEnd: (details) => setState(() {
+              _isDragging = false;
+            }),
+            onHorizontalDragUpdate: (details) {
+              // 处理水平拖动以调整进度
+              final position = widget.playerCntlr.value.position;
+              final duration = widget.playerCntlr.value.duration;
+              final delta = details.delta.dx * 1; // TODO 调整灵敏度
+              final newPosition = position + Duration(seconds: delta.round());
+              if (newPosition < duration && newPosition >= Duration.zero) {
+                widget.playerCntlr.seekTo(newPosition);
+              }
+            },
+            child: widget.playerCntlr.value.hasError
+                ? const Center(
+                    child: Text(
+                      '视频加载失败',
+                      style: TextStyle(color: Colors.white),
+                      textAlign: TextAlign.center,
+                    ),
+                  )
+                : VideoPlayer(widget.playerCntlr),
           ),
-      ],
+          if (_isDragging)
+            Center(
+              child: Container(
+                width: 100,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  '${_formatDuration(widget.playerCntlr.value.position)}/${_formatDuration(widget.playerCntlr.value.duration)}',
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ),
+            )
+          else if (_isBuffering)
+            const Center(child: CircularProgressIndicator()),
+          // 控制界面
+          if (_showControls)
+            ..._hub()
+          else
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: 7, // 和哔哩哔哩比较一致
+              child: SizedBox(
+                child: VideoProgressIndicator(
+                  widget.playerCntlr,
+                  allowScrubbing: false,
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
@@ -287,15 +311,15 @@ class _VidioPlayViewState extends State<VidioPlayView> {
                 '${_formatDuration(widget.playerCntlr.value.position)}/${_formatDuration(widget.playerCntlr.value.duration)}',
                 style: const TextStyle(color: Colors.white, fontSize: 12),
               ),
-              // IconButton(
-              //   icon: Icon(
-              //     widget.isfullScreen
-              //         ? Icons.fullscreen_exit
-              //         : Icons.fullscreen,
-              //     color: Colors.white,
-              //   ),
-              //   onPressed: _toggleFullScreen,
-              // ),
+              IconButton(
+                icon: Icon(
+                  widget.isfullScreen
+                      ? Icons.fullscreen_exit
+                      : Icons.fullscreen,
+                  color: Colors.white,
+                ),
+                onPressed: _toggleFullScreen,
+              ),
             ],
           ),
         ),
