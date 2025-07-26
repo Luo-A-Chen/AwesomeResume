@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../data_provider/data_provider.dart';
+import '../../data_provider/data_provider.dart';
 import 'settings.dart';
 
 class ServerSelectPage extends StatelessWidget {

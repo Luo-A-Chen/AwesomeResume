@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 
-import '../api/http.dart';
+import '../../api/http.dart';
 import '../user/auth_provider.dart';
 import 'comment.dart';
 

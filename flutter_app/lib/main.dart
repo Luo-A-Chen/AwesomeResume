@@ -4,9 +4,10 @@ import 'package:fluttertoast/fluttertoast.dart' as f_toast;
 
 import 'api/toast.dart';
 import 'api/local_storage.dart';
-import 'bottom_nav/main_page.dart';
-import 'settings/settings.dart';
-import 'user/auth_provider.dart';
+import 'state/player_state.dart';
+import 'view/bottom_nav/main_page.dart';
+import 'view/settings/settings.dart';
+import 'view/user/auth_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,6 +15,7 @@ Future<void> main() async {
   await Settings.loadFromLocal(); // 从本地加载设置
   await Settings.instance.dataProvider?.initHttp(); // 初始化网络请求
   await AuthProvider().init(); // TODO 暂时只针对blbl
+  await PlayerState.initState(); // 初始化播放器状态
   runApp(RestartableApp(keyNotifier: Settings.instance.appKeyNotifier));
 }
 

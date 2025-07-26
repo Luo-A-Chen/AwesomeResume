@@ -1,8 +1,8 @@
 
-import '../../api/toast.dart';
-import '../../api/http.dart';
+import '../../../api/toast.dart';
+import '../../../api/http.dart';
 import '../search_model.dart';
-import '../../data_provider/blbl_provider.dart';
+import '../../../data_provider/blbl_provider.dart';
 import '../search_provider.dart';
 
 class BlblSearchProvider extends SearchProvider {

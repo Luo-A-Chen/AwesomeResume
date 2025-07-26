@@ -1,7 +1,7 @@
 import 'blbl_provider.dart';
 import 'a_r_provider.dart';
-import '../search/search_provider.dart';
-import '../video/video_provider.dart';
+import '../view/search/search_provider.dart';
+import '../view/video/video_provider.dart';
 
 abstract class DataProvider {
   final String serverName;

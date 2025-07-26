@@ -1,7 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
-import '../api/http.dart';
+import '../../api/http.dart';
 import 'video_response.dart';
 
 class InfoView extends StatefulWidget {

@@ -2,7 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:loading_more_list/loading_more_list.dart';
 
-import '../api/toast.dart';
+import '../../api/toast.dart';
 import 'comment.dart';
 import 'comment_repository.dart';
 import 'comment_request.dart';

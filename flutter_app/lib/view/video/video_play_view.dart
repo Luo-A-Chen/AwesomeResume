@@ -3,24 +3,24 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_app/api/nav_extension.dart';
-import 'package:screen_brightness/screen_brightness.dart';
 import 'package:video_player/video_player.dart';
 
-import '../api/toast.dart';
+import '../../api/toast.dart';
+import '../../state/player_state.dart';
 
 class VidioPlayView extends StatefulWidget {
   final int avid; // 视频的avid
   final int cid; // 视频的cid
   final bool isfullScreen; // 是否全屏
   final String? title; // 用于非全屏时顶部返回条的标题
-  final VideoPlayerController playerCntlr;
+  final VideoPlayerController cntlr;
 
   const VidioPlayView({
     super.key,
     required this.avid,
     required this.cid,
+    required this.cntlr,
     required this.isfullScreen,
-    required this.playerCntlr,
     this.title,
   });
 
@@ -35,7 +35,6 @@ class _VidioPlayViewState extends State<VidioPlayView> {
   bool _isPlaying = true;
   bool _isBuffering = true;
   bool _positionSetting = false; // 是否正在调整进度
-  double _brightness = 0.25;
   bool _brightnessSetting = false; // 是否正在调整亮度
   bool _volumeSetting = false; // 是否正在调整音量
   PointerDeviceKind? _tapKind; // 可以判断是鼠标还是触屏等
@@ -44,50 +43,30 @@ class _VidioPlayViewState extends State<VidioPlayView> {
   Future<void> _setBrightnessOrVolume(DragUpdateDetails details) async {
     final delta = -details.delta.dy * 0.01; // 调整灵敏度
     if (_brightnessSetting) {
-      _brightness = (_brightness + delta).clamp(0.0, 1.0);
-      await ScreenBrightness.instance
-          .setApplicationScreenBrightness(_brightness);
-      ScreenBrightness.instance.setSystemScreenBrightness(_brightness);
+      await PlayerState.setBrightness(delta);
     } else if (_volumeSetting) {
-      var volume = (widget.playerCntlr.value.volume + delta).clamp(0.0, 1.0);
-      widget.playerCntlr.setVolume(volume);
+      await PlayerState.setVolume(delta);
     }
     setState(() {}); // 更新UI显示当前亮度或音量
-  }
-
-  // TODO 应该只需要App启动时初始化一次，可能需要放到全局状态
-  void _initBrightness() async {
-    // 先尝试获取应用亮度，再尝试获取系统亮度
-    try {
-      _brightness = await ScreenBrightness.instance.application;
-      _brightness = await ScreenBrightness.instance.system;
-    } catch (e) {
-      print('屏幕亮度获取失败: $e，当前为默认值25%');
-    }
   }
 
   @override
   void initState() {
     super.initState();
-    _initBrightness();
-    widget.playerCntlr.initialize().then((_) {
-      widget.playerCntlr.addListener(_onControllerUpdated);
-      widget.playerCntlr.play();
-    });
+    widget.cntlr.addListener(_onControllerUpdated);
   }
 
   @override
   void dispose() {
-    _controlsTimer?.cancel();
-    widget.playerCntlr.removeListener(_onControllerUpdated);
     super.dispose();
+    _controlsTimer?.cancel();
+    widget.cntlr.removeListener(_onControllerUpdated);
   }
 
   void _onControllerUpdated() {
-    var position = widget.playerCntlr.value.position;
-    // 这里不能用==判断位置
+    var position = widget.cntlr.value.position;
     bool isBuffering =
-        _isPlaying && position - _position < const Duration(milliseconds: 1);
+        _isPlaying && position - _position < const Duration(milliseconds: 50);
     if (_isBuffering != isBuffering) {
       setState(() {
         _isBuffering = isBuffering;
@@ -115,7 +94,7 @@ class _VidioPlayViewState extends State<VidioPlayView> {
 
   void _enterFullScreen() async {
     // 如果视频是横屏内容，需要锁定屏幕方向为横向
-    if (widget.playerCntlr.value.aspectRatio > 1) {
+    if (widget.cntlr.value.aspectRatio > 1) {
       print('锁定屏幕方向为横向');
       await SystemChrome.setPreferredOrientations([
         DeviceOrientation.landscapeLeft,
@@ -137,8 +116,8 @@ class _VidioPlayViewState extends State<VidioPlayView> {
             title: widget.title,
             isfullScreen: true,
             avid: widget.avid,
+            cntlr: widget.cntlr,
             cid: widget.cid,
-            playerCntlr: widget.playerCntlr,
           ),
         ),
       ),
@@ -146,15 +125,15 @@ class _VidioPlayViewState extends State<VidioPlayView> {
   }
 
   void _toggleFullScreen() async {
-    Toast.showWarning('全屏切换待开发');
+    // Toast.showWarning('全屏切换待开发');
     // TODO 全屏功能
-    // if (widget.isfullScreen) {
-    //   // 退出全屏
-    //   await _exitFullScreen();
-    // } else {
-    //   // 进入全屏
-    //   _enterFullScreen();
-    // }
+    if (widget.isfullScreen) {
+      // 退出全屏
+      await _exitFullScreen();
+    } else {
+      // 进入全屏
+      _enterFullScreen();
+    }
   }
 
   void _toggleControls([bool? show]) {
@@ -187,17 +166,17 @@ class _VidioPlayViewState extends State<VidioPlayView> {
     setState(() {
       _isPlaying = !_isPlaying;
     });
-    _isPlaying ? widget.playerCntlr.play() : widget.playerCntlr.pause();
+    _isPlaying ? widget.cntlr.play() : widget.cntlr.pause();
   }
 
   void _setPosition(details) {
     // 处理水平拖动以调整进度
-    final position = widget.playerCntlr.value.position;
-    final duration = widget.playerCntlr.value.duration;
+    final position = widget.cntlr.value.position;
+    final duration = widget.cntlr.value.duration;
     final delta = details.delta.dx * 1; // TODO 调整灵敏度
     final newPosition = position + Duration(seconds: delta.round());
     if (newPosition < duration && newPosition >= Duration.zero) {
-      widget.playerCntlr.seekTo(newPosition);
+      widget.cntlr.seekTo(newPosition);
     }
   }
 
@@ -245,7 +224,7 @@ class _VidioPlayViewState extends State<VidioPlayView> {
               _positionSetting = false;
             }),
             onHorizontalDragUpdate: _setPosition,
-            child: widget.playerCntlr.value.hasError
+            child: widget.cntlr.value.hasError
                 ? const Center(
                     child: Text(
                       '视频加载失败',
@@ -253,7 +232,7 @@ class _VidioPlayViewState extends State<VidioPlayView> {
                       textAlign: TextAlign.center,
                     ),
                   )
-                : VideoPlayer(widget.playerCntlr),
+                : VideoPlayer(widget.cntlr),
           ),
           if (_brightnessSetting || _volumeSetting)
             Center(
@@ -267,8 +246,8 @@ class _VidioPlayViewState extends State<VidioPlayView> {
                 alignment: Alignment.center,
                 child: Text(
                   _brightnessSetting
-                      ? '亮度：${(_brightness * 100).toInt()}%'
-                      : '音量：${(widget.playerCntlr.value.volume * 100).toInt()}%',
+                      ? '亮度：${(PlayerState.brightness * 100).toInt()}%'
+                      : '音量：${(PlayerState.volume * 100).toInt()}%',
                   style: const TextStyle(color: Colors.white),
                 ),
               ),
@@ -279,7 +258,7 @@ class _VidioPlayViewState extends State<VidioPlayView> {
               child: GestureDetector(
                 onHorizontalDragUpdate: _setPosition,
                 child: Container(
-                  width: 200,
+                  width: 100,
                   height: 40,
                   decoration: BoxDecoration(
                     color: Colors.black54,
@@ -287,8 +266,8 @@ class _VidioPlayViewState extends State<VidioPlayView> {
                   ),
                   alignment: Alignment.center,
                   child: Text(
-                    '拖动调整进度',
-                    style: const TextStyle(color: Colors.white),
+                    '${_formatDuration(widget.cntlr.value.position)}/${_formatDuration(widget.cntlr.value.duration)}',
+                    style: const TextStyle(color: Colors.white, fontSize: 12),
                   ),
                 ),
               ),
@@ -304,7 +283,7 @@ class _VidioPlayViewState extends State<VidioPlayView> {
                 ),
                 alignment: Alignment.center,
                 child: Text(
-                  '${_formatDuration(widget.playerCntlr.value.position)}/${_formatDuration(widget.playerCntlr.value.duration)}',
+                  '${_formatDuration(widget.cntlr.value.position)}/${_formatDuration(widget.cntlr.value.duration)}',
                   style: const TextStyle(color: Colors.white),
                 ),
               ),
@@ -322,7 +301,7 @@ class _VidioPlayViewState extends State<VidioPlayView> {
               height: 7, // 和哔哩哔哩比较一致
               child: SizedBox(
                 child: VideoProgressIndicator(
-                  widget.playerCntlr,
+                  widget.cntlr,
                   allowScrubbing: false,
                 ),
               ),
@@ -383,13 +362,13 @@ class _VidioPlayViewState extends State<VidioPlayView> {
               ),
               Expanded(
                 child: VideoProgressIndicator(
-                  widget.playerCntlr,
+                  widget.cntlr,
                   allowScrubbing: true,
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                 ),
               ),
               Text(
-                '${_formatDuration(widget.playerCntlr.value.position)}/${_formatDuration(widget.playerCntlr.value.duration)}',
+                '${_formatDuration(widget.cntlr.value.position)}/${_formatDuration(widget.cntlr.value.duration)}',
                 style: const TextStyle(color: Colors.white, fontSize: 12),
               ),
               IconButton(

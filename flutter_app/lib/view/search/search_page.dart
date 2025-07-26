@@ -2,7 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app/api/nav_extension.dart';
 
-import '../api/toast.dart';
+import '../../api/toast.dart';
 import '../video/data_provider/blbl_video_provider.dart';
 import '../settings/settings.dart';
 import '../video/video_page.dart';

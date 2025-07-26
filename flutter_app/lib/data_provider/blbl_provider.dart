@@ -6,8 +6,8 @@ import 'package:dio/dio.dart';
 import '../api/http.dart';
 import '../api/local_storage.dart';
 import 'data_provider.dart';
-import '../search/data_provider/blbl_search_provider.dart';
-import '../video/data_provider/blbl_video_provider.dart';
+import '../view/search/data_provider/blbl_search_provider.dart';
+import '../view/video/data_provider/blbl_video_provider.dart';
 
 class BlblProvider extends DataProvider {
   BlblProvider()

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../api/http.dart';
+import '../../api/http.dart';
 
 class AuthProvider with ChangeNotifier {
   AuthProvider._() {

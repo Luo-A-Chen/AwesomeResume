@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app/api/nav_extension.dart';
 import 'package:loading_more_list/loading_more_list.dart';
 
+import '../../state/player_state.dart';
 import '../search/search_page.dart';
 import '../video/video_page.dart';
 import '../video/video_response.dart';

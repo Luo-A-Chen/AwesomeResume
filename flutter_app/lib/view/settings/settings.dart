@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 
-import '../api/local_storage.dart';
-import '../data_provider/data_provider.dart';
+import '../../api/local_storage.dart';
+import '../../data_provider/data_provider.dart';
 
 class Settings {
   final ValueNotifier<Key> appKeyNotifier = ValueNotifier(Key('app'));
