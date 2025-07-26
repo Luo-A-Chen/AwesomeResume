@@ -127,6 +127,12 @@
             <artifactId>spring-session-data-redis</artifactId>
             <version>3.4.3</version>
         </dependency>
+        <!-- easy Excel -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>easyexcel</artifactId>
+            <version>3.1.0</version>
+        </dependency>
     </dependencies>
 
     <build>

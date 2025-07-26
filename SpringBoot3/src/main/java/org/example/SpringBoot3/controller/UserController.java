@@ -154,15 +154,15 @@ public class UserController {
     /**
      * 首页用户推荐
      */
-    @GetMapping("/recommend")
-    public BaseResponse<Page<User>> recommendUsers(long pageSize, long pageNum, HttpServletRequest request) {
-        //1.获取当前登录用户
-        //2.构建当前用户的redis的key
-        //3.获取redis操作符的简单接口
-        //4.如果查到有缓存，则以分页的形式返回
-        //5.如果没有缓存，则查询数据库，写到缓存中,并设置缓存过期时间
-        //6.返回用户列表
-        return ResultUtils.success(userPage);
-    }
+//    @GetMapping("/recommend")
+//    public BaseResponse<Page<User>> recommendUsers(long pageSize, long pageNum, HttpServletRequest request) {
+//        //1.获取当前登录用户
+//        //2.构建当前用户的redis的key
+//        //3.获取redis操作符的简单接口
+//        //4.如果查到有缓存，则以分页的形式返回
+//        //5.如果没有缓存，则查询数据库，写到缓存中,并设置缓存过期时间
+//        //6.返回用户列表
+//        return ResultUtils.success(userPage);
+//    }
 
 }
