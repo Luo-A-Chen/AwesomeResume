@@ -1,4 +1,9 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <!--
+    添加xmlns:tools="http://schemas.android.com/tools"和tools:ignore="ProtectedPermissions"防止调整亮度时需要手动申请权限 -->
+    <uses-permission android:name="android.permission.WRITE_SETTINGS"
+        tools:ignore="ProtectedPermissions" /> <!-- 写入设置权限 调整亮度 -->
     <uses-permission android:name="android.permission.INTERNET" /> <!-- 网络权限 -->
     <application
         android:label="ARApp"

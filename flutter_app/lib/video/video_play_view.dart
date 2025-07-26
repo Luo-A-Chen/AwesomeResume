@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_app/api/nav_extension.dart';
+import 'package:screen_brightness/screen_brightness.dart';
 import 'package:video_player/video_player.dart';
 
 import '../api/toast.dart';
@@ -33,12 +34,42 @@ class _VidioPlayViewState extends State<VidioPlayView> {
   Duration _position = Duration.zero;
   bool _isPlaying = true;
   bool _isBuffering = true;
-  bool _isDragging = false;
-  PointerDeviceKind? _detailsKind; // 可以判断是鼠标还是触屏等
+  bool _positionSetting = false; // 是否正在调整进度
+  double _brightness = 0.25;
+  bool _brightnessSetting = false; // 是否正在调整亮度
+  bool _volumeSetting = false; // 是否正在调整音量
+  PointerDeviceKind? _tapKind; // 可以判断是鼠标还是触屏等
+  bool _dragLeft = false; // 用于判断左右
+
+  Future<void> _setBrightnessOrVolume(DragUpdateDetails details) async {
+    final delta = -details.delta.dy * 0.01; // 调整灵敏度
+    if (_brightnessSetting) {
+      _brightness = (_brightness + delta).clamp(0.0, 1.0);
+      await ScreenBrightness.instance
+          .setApplicationScreenBrightness(_brightness);
+      ScreenBrightness.instance.setSystemScreenBrightness(_brightness);
+    } else if (_volumeSetting) {
+      var volume = (widget.playerCntlr.value.volume + delta).clamp(0.0, 1.0);
+      widget.playerCntlr.setVolume(volume);
+    }
+    setState(() {}); // 更新UI显示当前亮度或音量
+  }
+
+  // TODO 应该只需要App启动时初始化一次，可能需要放到全局状态
+  void _initBrightness() async {
+    // 先尝试获取应用亮度，再尝试获取系统亮度
+    try {
+      _brightness = await ScreenBrightness.instance.application;
+      _brightness = await ScreenBrightness.instance.system;
+    } catch (e) {
+      print('屏幕亮度获取失败: $e，当前为默认值25%');
+    }
+  }
 
   @override
   void initState() {
     super.initState();
+    _initBrightness();
     widget.playerCntlr.initialize().then((_) {
       widget.playerCntlr.addListener(_onControllerUpdated);
       widget.playerCntlr.play();
@@ -56,7 +87,7 @@ class _VidioPlayViewState extends State<VidioPlayView> {
     var position = widget.playerCntlr.value.position;
     // 这里不能用==判断位置
     bool isBuffering =
-        _isPlaying && position - _position < const Duration(milliseconds: 10);
+        _isPlaying && position - _position < const Duration(milliseconds: 1);
     if (_isBuffering != isBuffering) {
       setState(() {
         _isBuffering = isBuffering;
@@ -159,49 +190,61 @@ class _VidioPlayViewState extends State<VidioPlayView> {
     _isPlaying ? widget.playerCntlr.play() : widget.playerCntlr.pause();
   }
 
+  void _setPosition(details) {
+    // 处理水平拖动以调整进度
+    final position = widget.playerCntlr.value.position;
+    final duration = widget.playerCntlr.value.duration;
+    final delta = details.delta.dx * 1; // TODO 调整灵敏度
+    final newPosition = position + Duration(seconds: delta.round());
+    if (newPosition < duration && newPosition >= Duration.zero) {
+      widget.playerCntlr.seekTo(newPosition);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // MouseRegion包裹在Stack外层，防止GestureDetector与_hub竞争监听
     return MouseRegion(
-      onEnter: (_) {
-        if (_detailsKind != PointerDeviceKind.mouse) return;
-        _toggleControls(true);
-      },
-      onExit: (_) {
-        if (_detailsKind != PointerDeviceKind.mouse) return;
-        _toggleControls(false);
-      },
-      onHover: (_) {
-        if (_detailsKind != PointerDeviceKind.mouse) return;
-        _toggleControls(true);
-      },
+      onEnter: _tapKind == PointerDeviceKind.mouse
+          ? (_) => _toggleControls(true)
+          : null,
+      onExit: _tapKind == PointerDeviceKind.mouse
+          ? (_) => _toggleControls(false)
+          : null,
+      onHover: _tapKind == PointerDeviceKind.mouse
+          ? (_) => _toggleControls(true)
+          : null,
       child: Stack(
         alignment: Alignment.center,
         children: [
           GestureDetector(
-            onTap: _detailsKind == PointerDeviceKind.mouse
+            behavior: HitTestBehavior.translucent,
+            onTap: _tapKind == PointerDeviceKind.mouse
                 ? _togglePlay
                 : _toggleControls,
-            onTapDown: (details) => _detailsKind = details.kind,
-            onDoubleTap: _detailsKind == PointerDeviceKind.mouse
+            onTapDown: (details) {
+              _tapKind = details.kind;
+            },
+            onDoubleTap: _tapKind == PointerDeviceKind.mouse
                 ? _toggleFullScreen
                 : _togglePlay,
-            onHorizontalDragStart: (details) => setState(() {
-              _isDragging = true;
+            onVerticalDragStart: (details) => setState(() {
+              _dragLeft = details.localPosition.dx <
+                  MediaQuery.of(context).size.width / 2;
+              _dragLeft ? _brightnessSetting = true : _volumeSetting = true;
             }),
-            onHorizontalDragEnd: (details) => setState(() {
-              _isDragging = false;
+            onVerticalDragEnd: (_) => setState(() {
+              _brightnessSetting = false;
+              _volumeSetting = false;
             }),
-            onHorizontalDragUpdate: (details) {
-              // 处理水平拖动以调整进度
-              final position = widget.playerCntlr.value.position;
-              final duration = widget.playerCntlr.value.duration;
-              final delta = details.delta.dx * 1; // TODO 调整灵敏度
-              final newPosition = position + Duration(seconds: delta.round());
-              if (newPosition < duration && newPosition >= Duration.zero) {
-                widget.playerCntlr.seekTo(newPosition);
-              }
-            },
+            onVerticalDragUpdate: _setBrightnessOrVolume,
+            onHorizontalDragStart: (_) => setState(() {
+              _positionSetting = true;
+            }),
+            onHorizontalDragEnd: (_) => setState(() {
+              _positionSetting = false;
+            }),
+            onHorizontalDragUpdate: _setPosition,
             child: widget.playerCntlr.value.hasError
                 ? const Center(
                     child: Text(
@@ -212,7 +255,45 @@ class _VidioPlayViewState extends State<VidioPlayView> {
                   )
                 : VideoPlayer(widget.playerCntlr),
           ),
-          if (_isDragging)
+          if (_brightnessSetting || _volumeSetting)
+            Center(
+              child: Container(
+                width: 100,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  _brightnessSetting
+                      ? '亮度：${(_brightness * 100).toInt()}%'
+                      : '音量：${(widget.playerCntlr.value.volume * 100).toInt()}%',
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ),
+            )
+          // 这里else if让音量/亮度、进度和缓冲只能显示一个
+          else if (_positionSetting) // 显示进度调整条
+            Center(
+              child: GestureDetector(
+                onHorizontalDragUpdate: _setPosition,
+                child: Container(
+                  width: 200,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    '拖动调整进度',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
+            )
+          else if (_positionSetting) // 显示进度调整条
             Center(
               child: Container(
                 width: 100,
@@ -228,7 +309,7 @@ class _VidioPlayViewState extends State<VidioPlayView> {
                 ),
               ),
             )
-          else if (_isBuffering)
+          else if (_isBuffering) // 显示缓冲指示器
             const Center(child: CircularProgressIndicator()),
           // 控制界面
           if (_showControls)
