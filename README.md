@@ -2,21 +2,21 @@
 
 github https://github.com/Luo-A-Chen/AwesomeResume.git
 
-gitee 镜像 https://gitee.com/qinshah/AwesomeResume.git
+gitee(镜像) https://gitee.com/qinshah/AwesomeResume.git
 
 ## 项目说明
 
 这个项目会尽可能在各个主流开发框架中实现各种常见的软件功能
-前期规划技术栈为 spring 后端+vue3、flutter 前端
+前期规划技术栈为 springboot 后端，vue3、flutter 前端
 前期规划功能为用户系统、内容发布和评论功能
 
 ## 另一方面，我们也希望这个项目以后会成为我们最好的简历
 
 # 功能设计：
 
-## flutter 端，前期参考哔哩哔哩开发视频功能
+## awesome_flutter，前期开发以第三方哔哩哔哩为主
 
-原项目仓库（https://gitee.com/qinshah/blbl）不再更新
+原项目仓库(https://gitee.com/qinshah/blbl)不再更新
 
 ### 开发进度
 
