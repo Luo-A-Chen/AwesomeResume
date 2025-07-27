@@ -201,6 +201,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }).map(this::getSafetyUser).collect(Collectors.toList());
     }
 
+    @Override
+    public User getLoginUser(HttpServletRequest request) {
+        //1.获取当前登录用户
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+        //2.提取当前用户信息，并返回
+        return (User) userObj;
+    }
+
     /**
      * 根据标签搜索用户(sql版)deprecated被弃用
      * @param tagNameList

@@ -20,6 +20,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import static org.example.SpringBoot3.constant.UserConstant.USER_LOGIN_STATE;
 
@@ -154,15 +155,29 @@ public class UserController {
     /**
      * 首页用户推荐
      */
-//    @GetMapping("/recommend")
-//    public BaseResponse<Page<User>> recommendUsers(long pageSize, long pageNum, HttpServletRequest request) {
-//        //1.获取当前登录用户
-//        //2.构建当前用户的redis的key
-//        //3.获取redis操作符的简单接口
-//        //4.如果查到有缓存，则以分页的形式返回
-//        //5.如果没有缓存，则查询数据库，写到缓存中,并设置缓存过期时间
-//        //6.返回用户列表
-//        return ResultUtils.success(userPage);
-//    }
+    @GetMapping("/recommend")
+    public BaseResponse<Page<User>> recommendUsers(long pageSize, long pageNum, HttpServletRequest request) {
+        //1.获取当前登录用户
+        User loginUser = userService.getLoginUser(request);
+        //2.构建当前用户的redis的key
+        String redisKey = String.format("luochen:user:recommend:%s", loginUser.getId());
+        //3.获取redis操作符的简单接口
+        Page<User> userPage = (Page<User>) redisTemplate.opsForValue().get(redisKey);
+        //4.如果查到有缓存，则以分页的形式返回
+        if (userPage != null){
+            return ResultUtils.success(userPage);
+        }
+        //5.如果没有缓存，则查询数据库，写到缓存中,并设置缓存过期时间
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        Page<User> userList = userService.page(new Page<>(pageSize, pageNum), queryWrapper);
+        //写缓存,10s过期
+        try {
+            redisTemplate.opsForValue().set(redisKey,userPage,30000, TimeUnit.MILLISECONDS);
+        } catch (Exception e){
+            log.error("redis set key error",e);
+        }
+        //6.返回用户列表
+        return ResultUtils.success(userList);
+    }
 
 }
