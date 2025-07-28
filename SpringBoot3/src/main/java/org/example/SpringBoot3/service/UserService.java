@@ -54,4 +54,5 @@ public interface UserService extends IService<User> {
      * 获取登录用户信息
      */
     User getLoginUser(HttpServletRequest request);
+
 }

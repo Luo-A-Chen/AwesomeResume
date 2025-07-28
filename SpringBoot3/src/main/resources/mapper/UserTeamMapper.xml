@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.SpringBoot3.mapper.UserTeamMapper">
+
+    <resultMap id="BaseResultMap" type="org.example.SpringBoot3.model.UserTeam">
+            <id property="id" column="id" />
+            <result property="userld" column="userld" />
+            <result property="teamld" column="teamld" />
+            <result property="joinTime" column="joinTime" />
+            <result property="createTime" column="createTime" />
+            <result property="updateTime" column="updateTime" />
+            <result property="isDelete" column="isDelete" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,userld,teamld,joinTime,createTime,updateTime,
+        isDelete
+    </sql>
+</mapper>
