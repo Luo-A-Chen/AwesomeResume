@@ -1,6 +1,7 @@
 package org.example.SpringBoot3.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import jakarta.annotation.Resource;
@@ -9,14 +10,20 @@ import org.example.SpringBoot3.common.TeamStatusEnum;
 import org.example.SpringBoot3.exception.BusinessException;
 import org.example.SpringBoot3.model.Team;
 import org.example.SpringBoot3.mapper.TeamMapper;
+import org.example.SpringBoot3.model.TeamQuery;
 import org.example.SpringBoot3.model.User;
 import org.example.SpringBoot3.model.UserTeam;
+import org.example.SpringBoot3.model.Vo.TeamUserVO;
+import org.example.SpringBoot3.model.Vo.UserVo;
 import org.example.SpringBoot3.service.TeamService;
 import org.example.SpringBoot3.service.UserTeamService;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -29,7 +36,11 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
     implements TeamService {
     @Resource
     UserTeamService userTeamService;
-
+    /**
+     *  添加队伍
+     * @param team
+     * @return
+     */
     @Transactional(rollbackFor = Exception.class)
     @Override
     public long addTeam(Team team, User loginUser) {
@@ -103,6 +114,8 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         }
         return teamId;
     }
+
+
 }
 
 
