@@ -16,7 +16,7 @@ class AuthProvider with ChangeNotifier {
 
   // 登录状态
   bool _isLoggedIn = false;
-  bool get isLoggedIn => _isLoggedIn;
+  bool get isLogIn => _isLoggedIn;
 
   // 用户信息
   Map<String, dynamic>? _userInfo;
@@ -56,7 +56,7 @@ class AuthProvider with ChangeNotifier {
         await _checkLoginStatus();
       }
     } catch (e) {
-      debugPrint('初始化登录状态失败: $e');
+      print('初始化登录状态失败: $e');
     }
   }
 
@@ -81,7 +81,7 @@ class AuthProvider with ChangeNotifier {
         await _clearLoginData();
       }
     } catch (e) {
-      debugPrint('检查登录状态失败: $e');
+      print('检查登录状态失败: $e');
       await _clearLoginData();
     }
   }
@@ -109,7 +109,7 @@ class AuthProvider with ChangeNotifier {
         return false;
       }
     } catch (e) {
-      debugPrint('生成二维码失败: $e');
+      print('生成二维码失败: $e');
       _updateQRStatus(QRCodeStatus.error, '网络错误，请重试');
       return false;
     }
@@ -166,7 +166,7 @@ class AuthProvider with ChangeNotifier {
         }
       }
     } catch (e) {
-      debugPrint('轮询二维码状态失败: $e');
+      print('轮询二维码状态失败: $e');
     }
   }
 
@@ -192,7 +192,7 @@ class AuthProvider with ChangeNotifier {
       // 获取用户信息
       await _checkLoginStatus();
     } catch (e) {
-      debugPrint('处理登录成功失败: $e');
+      print('处理登录成功失败: $e');
       _updateQRStatus(QRCodeStatus.error, '登录失败，请重试');
     }
   }
@@ -210,7 +210,7 @@ class AuthProvider with ChangeNotifier {
         await prefs.setString('DedeUserID__ckMd5', _dedeUserIdCkMd5!);
       }
     } catch (e) {
-      debugPrint('保存登录数据失败: $e');
+      print('保存登录数据失败: $e');
     }
   }
 
@@ -232,7 +232,7 @@ class AuthProvider with ChangeNotifier {
 
       notifyListeners();
     } catch (e) {
-      debugPrint('清除登录数据失败: $e');
+      print('清除登录数据失败: $e');
     }
   }
 

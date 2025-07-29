@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:awesome_flutter/api/nav_extension.dart';
 import 'package:loading_more_list/loading_more_list.dart';
 
+import '../../api/toast.dart';
 import '../search/search_page.dart';
 import '../mine/auth_provider.dart';
 import '../mine/login_page.dart';
@@ -25,14 +26,17 @@ class _HomePageState extends State<HomePage>
     super.build(context);
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        title: _searchBar(),
+        titleSpacing: 16, // 标题左侧间距
+        title: _avatarAndSearchBar(),
         actions: [
           IconButton(
-            icon: const Icon(Icons.videogame_asset_outlined),
-            onPressed: null,
+            onPressed: () {},
+            icon: Icon(Icons.gamepad_outlined),
           ),
-          IconButton(icon: const Icon(Icons.mail_outline), onPressed: null),
+          IconButton(
+            onPressed: () {},
+            icon: Icon(Icons.message_outlined),
+          ),
         ],
       ),
       body: RefreshIndicator(
@@ -43,7 +47,7 @@ class _HomePageState extends State<HomePage>
             gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
               crossAxisSpacing: 6,
               mainAxisSpacing: 6,
-              maxCrossAxisExtent: 300,
+              maxCrossAxisExtent: 250,
               childAspectRatio: 0.8,
             ),
             sourceList: _videoRepository,
@@ -53,56 +57,75 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  Widget _searchBar() {
-    return Row(
-      children: [
-        // 登录按钮
-        GestureDetector(
-          onTap: AuthProvider().isLoggedIn
-              ? null
-              : () => context.push(LoginPage()),
-          child: Container(
-            width: 32,
-            height: 32,
-            margin: const EdgeInsets.only(right: 8),
-            decoration:
-                BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-            child: const Icon(
-              Icons.person,
-              color: Colors.grey,
-              size: 20,
-            ),
-          ),
-        ),
-        // 搜索框
-        Expanded(
-          child: Container(
-            height: 36,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: Row(
-              children: [
-                const SizedBox(width: 8),
-                const Icon(Icons.search, color: Colors.grey),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () =>
-                        context.push(const SearchPage(initialKeyword: '灵笼第二季')),
-                    child: Text(
-                      '灵笼第二季',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 14),
+  Widget _avatarAndSearchBar() {
+    return LayoutBuilder(builder: (context, constraints) {
+      return SizedBox(
+        height: kToolbarHeight,
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          children: [
+            // TODO 头像实战案例
+            Center(
+              child: GestureDetector(
+                onTap: () async {
+                  if (AuthProvider().isLogIn) {
+                    // 头像入口
+                    Toast.unimplemented();
+                  } else {
+                    await context.push(LoginPage());
+                    setState(() {});
+                  }
+                },
+                child: CircleAvatar(
+                  radius: 17,
+                  backgroundColor: Color.fromARGB(255, 241, 244, 245),
+                  foregroundImage: AuthProvider().isLogIn
+                      ? CachedNetworkImageProvider(
+                          AuthProvider().userInfo?['face'],
+                        )
+                      : null,
+                  child: Text(
+                    '登录',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).primaryColor,
                     ),
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
+            SizedBox(width: 14),
+            // 搜索框
+            Center(
+              child: SizedBox(
+                width: (constraints.maxWidth - 50).clamp(32, 190),
+                height: 34,
+                child: GestureDetector(
+                  onTap: () => context.push(SearchPage()),
+                  child: TextField(
+                    enabled: false,
+                    decoration: InputDecoration(
+                      hintText: '搜索',
+                      hintStyle: TextStyle(color: Colors.black54),
+                      contentPadding: EdgeInsets.zero,
+                      // 左侧图标
+                      prefixIcon:
+                          const Icon(Icons.search, color: Colors.black54),
+                      // 半圆角border
+                      disabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(999),
+                        borderSide: BorderSide(color: Colors.black45),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
-      ],
-    );
+      );
+    });
   }
 
   Widget _buildVideoCard(Video video) {
@@ -141,7 +164,7 @@ class _HomePageState extends State<HomePage>
                   right: 0,
                   bottom: 0,
                   child: Container(
-                    padding: const EdgeInsets.fromLTRB(6, 14, 6, 4),
+                    padding: const EdgeInsets.fromLTRB(6, 10, 6, 4),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,

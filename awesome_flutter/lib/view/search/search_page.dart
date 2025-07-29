@@ -9,9 +9,9 @@ import '../video/video_page.dart';
 import 'search_model.dart';
 
 class SearchPage extends StatefulWidget {
-  final String initialKeyword;
+  final String initKeyword;
 
-  const SearchPage({super.key, this.initialKeyword = ''});
+  const SearchPage({super.key, this.initKeyword = ''});
 
   @override
   State<SearchPage> createState() => _SearchPageState();
@@ -40,7 +40,7 @@ class _SearchPageState extends State<SearchPage>
   @override
   void initState() {
     super.initState();
-    _searchController = TextEditingController(text: widget.initialKeyword);
+    _searchController = TextEditingController(text: widget.initKeyword);
     _tabController = TabController(length: _tabs.length, vsync: this);
     _tabController.addListener(_handleTabSelection);
   }

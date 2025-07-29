@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:awesome_flutter/api/nav_extension.dart';
 
 import '../settings/settings_page.dart';
+import 'auth_provider.dart';
 import 'login_page.dart';
 
 class MinePage extends StatefulWidget {
@@ -32,14 +33,14 @@ class _MinePageState extends State<MinePage> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(5),
             ),
-            foregroundColor: Colors.white,
-            backgroundColor: Colors.pinkAccent,
           ),
-          onPressed: () {
-            context.push(const LoginPage()).then((_) {
-              setState(() {});
-            });
-          },
+          onPressed: AuthProvider().isLogIn
+              ? null // 如果已登录，则按钮不可点击
+              : () {
+                  context.push(const LoginPage()).then((_) {
+                    setState(() {});
+                  });
+                },
           child: const Text('登录'),
         ),
       ),

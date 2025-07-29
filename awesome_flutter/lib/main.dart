@@ -34,17 +34,32 @@ class _RestartableAppState extends State<RestartableApp> {
     return ValueListenableBuilder(
       valueListenable: widget.keyNotifier,
       builder: (context, key, _) {
+        final primaryColor = Color(0xffFB7299);
         return MaterialApp(
           key: key,
           builder: f_toast.FToastBuilder(),
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
-            colorScheme: ColorScheme.fromSwatch(
-              primarySwatch: Colors.pink,
+            primaryColor: primaryColor,
+            appBarTheme: AppBarTheme(
+              backgroundColor: Colors.white,
+              // 禁用滑动内容后appbar变色
+              scrolledUnderElevation: 0,
             ),
+            colorScheme: ColorScheme.fromSeed(seedColor: primaryColor),
             scaffoldBackgroundColor:
                 const Color.fromRGBO(238, 238, 238, 1), // 背景色
-            splashFactory: NoSplash.splashFactory, // 禁用底部导航栏点击涟漪效果
+            splashFactory: NoSplash.splashFactory, // 禁用涟漪效果
+            elevatedButtonTheme: ElevatedButtonThemeData(
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white, // 按钮文字颜色
+                backgroundColor: primaryColor, // 按钮背景颜色
+              ),
+            ),
+            bottomNavigationBarTheme: BottomNavigationBarThemeData(
+              selectedItemColor: primaryColor,
+              type: BottomNavigationBarType.fixed,
+            ),
           ),
           // 语言设置
           locale: const Locale('zh', 'CN'),

@@ -134,7 +134,7 @@ class _FollowPageState extends State<FollowPage> with AutomaticKeepAliveClientMi
     super.build(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(AuthProvider().isLoggedIn ? '关注' : '动态'),
+        title: Text(AuthProvider().isLogIn ? '关注' : '动态'),
         centerTitle: true,
         actions: [
           IconButton(
@@ -147,7 +147,7 @@ class _FollowPageState extends State<FollowPage> with AutomaticKeepAliveClientMi
       ),
       body: CustomScrollView(
         controller: _scrollController, // 将滚动控制器关联到CustomScrollView
-        slivers: !AuthProvider().isLoggedIn
+        slivers: !AuthProvider().isLogIn
             ? [
                 SliverToBoxAdapter(
                   child: Column(

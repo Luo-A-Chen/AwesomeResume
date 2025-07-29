@@ -49,7 +49,7 @@ class _LoginPageState extends State<LoginPage> {
         listenable: _authProvider,
         builder: (context, child) {
           // 登录成功后自动返回
-          if (_authProvider.isLoggedIn) {
+          if (_authProvider.isLogIn) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               Navigator.of(context).pop();
             });
