@@ -5,7 +5,7 @@ import '../mine/auth_provider.dart';
 import '../mine/login_page.dart';
 import 'data_provider/dynamic_service.dart';
 import 'dynamic.dart';
-import 'dynamic_item_widget.dart';
+import 'dynamic_card.dart';
 
 class FollowPage extends StatefulWidget {
   const FollowPage({super.key});
@@ -14,11 +14,11 @@ class FollowPage extends StatefulWidget {
   State<FollowPage> createState() => _FollowPageState();
 }
 
-class _FollowPageState extends State<FollowPage> with AutomaticKeepAliveClientMixin{
+class _FollowPageState extends State<FollowPage>
+    with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
 
- 
   final List<Dynamic> _dynamicList = [];
   List<Dynamic> _filteredDynamicList = []; // 新增：过滤后的动态列表
   List<FrequentUser> _frequentUsers = [];
@@ -145,123 +145,123 @@ class _FollowPageState extends State<FollowPage> with AutomaticKeepAliveClientMi
           ),
         ],
       ),
-      body: CustomScrollView(
-        controller: _scrollController, // 将滚动控制器关联到CustomScrollView
-        slivers: !AuthProvider().isLogIn
-            ? [
-                SliverToBoxAdapter(
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 80),
-                      const Text('你还未登录',
-                          style: TextStyle(fontWeight: FontWeight.w500)),
-                      const SizedBox(height: 8),
-                      const Text('登录账号，查看你关注的UP主内容',
-                          style: TextStyle(color: Colors.blueGrey)),
-                      const SizedBox(height: 8),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: const Size(250, 40),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          foregroundColor: Colors.white,
-                          backgroundColor: Colors.pinkAccent,
-                        ),
-                        onPressed: () {
-                          context.push(const LoginPage()).then((_) {
-                            setState(() {});
-                          });
-                        },
-                        child: const Text('登录'),
-                      ),
-                      const SizedBox(height: 60),
-                      const Divider(thickness: 0.1, color: Colors.grey),
-                      const SizedBox(height: 6),
-                      const Row(children: [
-                        SizedBox(width: 10),
-                        Text('猜你喜欢的UP主',
-                            style: TextStyle(fontWeight: FontWeight.w500)),
-                      ]),
-                    ],
-                  ),
-                ),
-                const SliverToBoxAdapter(child: Placeholder()),
-              ]
-            : [
-                // 动态类型筛选标签
-                SliverToBoxAdapter(
-                  child: Container(
-                    height: 40,
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
+      body: RefreshIndicator(
+        onRefresh: () async {
+          _dynamicList.clear();
+          _nextOffset = null;
+          await _loadData();
+          setState(() {});
+        },
+        child: CustomScrollView(
+          controller: _scrollController, // 将滚动控制器关联到CustomScrollView
+          slivers: !AuthProvider().isLogIn
+              ? [
+                  SliverToBoxAdapter(
+                    child: Column(
                       children: [
-                        _buildFilterChip('全部', null), // 全部类型
-                        _buildFilterChip('视频', DynamicType.video), // 视频类型
-                        _buildFilterChip('图文', DynamicType.draw), // 图文类型
-                        _buildFilterChip('文字', DynamicType.word), // 文字类型
-                        _buildFilterChip('转发', DynamicType.forward), // 转发类型
-                        _buildFilterChip('直播', DynamicType.live), // 直播类型
-                        _buildFilterChip('专栏', DynamicType.article), // 专栏类型
+                        const SizedBox(height: 80),
+                        const Text('你还未登录',
+                            style: TextStyle(fontWeight: FontWeight.w500)),
+                        const SizedBox(height: 8),
+                        const Text('登录账号，查看你关注的UP主内容',
+                            style: TextStyle(color: Colors.blueGrey)),
+                        const SizedBox(height: 8),
+                        ElevatedButton(
+                          onPressed: () {
+                            context.push(const LoginPage()).then((_) {
+                              setState(() {});
+                            });
+                          },
+                          child: const Text('登录'),
+                        ),
+                        const SizedBox(height: 60),
+                        const Divider(thickness: 0.1, color: Colors.grey),
+                        const SizedBox(height: 6),
+                        const Row(children: [
+                          SizedBox(width: 10),
+                          Text('猜你喜欢的UP主',
+                              style: TextStyle(fontWeight: FontWeight.w500)),
+                        ]),
                       ],
                     ),
                   ),
-                ),
-                // 最常访问用户列表
-                SliverToBoxAdapter(
-                  child: Container(
-                    height: 100,
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: _frequentUsers.length,
-                      itemBuilder: (context, index) {
-                        final user = _frequentUsers[index];
-                        return GestureDetector(
-                          onTap: () {
-                            // TODO 筛选指定用户动态
-                            // _filterDynamicsByUser(user.mid);
-                          },
-                          child: Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 8.0),
-                            child: Column(
-                              children: [
-                                CircleAvatar(
-                                  radius: 30,
-                                  backgroundImage: NetworkImage(user.face),
-                                ),
-                                const SizedBox(height: 4.0),
-                                Text(user.name),
-                              ],
+                  const SliverToBoxAdapter(child: Placeholder()),
+                ]
+              : [
+                  // 动态类型筛选标签
+                  SliverToBoxAdapter(
+                    child: Container(
+                      height: 40,
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        children: [
+                          _buildFilterChip('全部', null), // 全部类型
+                          _buildFilterChip('视频', DynamicType.video), // 视频类型
+                          _buildFilterChip('图文', DynamicType.draw), // 图文类型
+                          _buildFilterChip('文字', DynamicType.word), // 文字类型
+                          _buildFilterChip('转发', DynamicType.forward), // 转发类型
+                          _buildFilterChip('直播', DynamicType.live), // 直播类型
+                          _buildFilterChip('专栏', DynamicType.article), // 专栏类型
+                        ],
+                      ),
+                    ),
+                  ),
+                  // 最常访问用户列表
+                  SliverToBoxAdapter(
+                    child: Container(
+                      height: 100,
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: _frequentUsers.length,
+                        itemBuilder: (context, index) {
+                          final user = _frequentUsers[index];
+                          return GestureDetector(
+                            onTap: () {
+                              // TODO 筛选指定用户动态
+                              // _filterDynamicsByUser(user.mid);
+                            },
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 8.0),
+                              child: Column(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 30,
+                                    backgroundImage: NetworkImage(user.face),
+                                  ),
+                                  const SizedBox(height: 4.0),
+                                  Text(user.name),
+                                ],
+                              ),
                             ),
-                          ),
-                        );
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                  // 动态列表
+                  SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final dynamicItem =
+                            _filteredDynamicList[index]; // 使用过滤后的列表
+                        return DynamicCart(dynamicItem: dynamicItem);
                       },
+                      childCount: _filteredDynamicList.length, // 使用过滤后的列表长度
                     ),
                   ),
-                ),
-                // 动态列表
-                SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final dynamicItem =
-                          _filteredDynamicList[index]; // 使用过滤后的列表
-                      return DynamicItemWidget(dynamicItem: dynamicItem);
-                    },
-                    childCount: _filteredDynamicList.length, // 使用过滤后的列表长度
-                  ),
-                ),
-                // 加载更多指示器
-                if (_isLoading) // 只有在加载更多时显示指示器
-                  const SliverToBoxAdapter(
-                    child: Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: Center(child: CircularProgressIndicator()),
+                  // 加载更多指示器
+                  if (_isLoading) // 只有在加载更多时显示指示器
+                    const SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
                     ),
-                  ),
-              ],
+                ],
+        ),
       ),
     );
   }

@@ -1,16 +1,16 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:awesome_flutter/api/nav_extension.dart';
-import 'package:timeago/timeago.dart' as timeago;
 
+import '../../api/toast.dart';
 import '../video/video_page.dart';
 import '../video/video_urls.dart';
 import 'dynamic.dart';
 
-class DynamicItemWidget extends StatelessWidget {
+class DynamicCart extends StatelessWidget {
   final Dynamic dynamicItem;
 
-  const DynamicItemWidget({super.key, required this.dynamicItem});
+  const DynamicCart({super.key, required this.dynamicItem});
 
   @override
   Widget build(BuildContext context) {
@@ -19,19 +19,24 @@ class DynamicItemWidget extends StatelessWidget {
     switch (dynamicItem.type) {
       case DynamicType.video:
         contentWidget = _buildVideoDynamic(
-            dynamicItem.modules.moduleDynamic?.major?.archive);
+          context,
+          dynamicItem.modules.moduleDynamic?.major?.archive,
+        );
         break;
       case DynamicType.draw:
-        contentWidget = _buildDrawDynamic(dynamicItem.modules.moduleDesc,
+        contentWidget = _buildDrawDynamic(
+            dynamicItem.modules.moduleDynamic?.desc,
             dynamicItem.modules.moduleDynamic?.major?.draw);
         break;
       case DynamicType.word:
-        contentWidget = _buildWordDynamic(dynamicItem.modules.moduleDesc);
+        contentWidget =
+            _buildWordDynamic(dynamicItem.modules.moduleDynamic?.desc);
         break;
       case DynamicType.forward:
         // 对于转发动态，需要同时显示转发内容和原始内容
         contentWidget = _buildForwardDynamic(
-          dynamicItem.modules.moduleDesc, // 转发时的文字描述
+          context,
+          dynamicItem.modules.moduleDynamic?.desc, // 转发时的文字描述
           dynamicItem.orig, // 原始动态内容
         );
         break;
@@ -57,18 +62,7 @@ class DynamicItemWidget extends StatelessWidget {
       child: InkWell(
         splashColor: Colors.transparent, // 禁用涟漪
         onTap: () async {
-          // TODO 打开更多类型的动态
-          if (dynamicItem.type == DynamicType.video) {
-            final archive = dynamicItem.modules.moduleDynamic?.major?.archive;
-            if (archive == null) return;
-            final videoInfo = await VideoUrls.getVideoInfo(archive.bvid);
-            if (videoInfo['cid'] is! int) return;
-            context.push(VideoPage(
-              cid: videoInfo['cid'],
-              avid: int.parse(archive.aid),
-              title: archive.title,
-            ));
-          }
+          // TODO 动态卡片点击
         },
         child: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -76,8 +70,7 @@ class DynamicItemWidget extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // 作者信息
-              _buildAuthorInfo(dynamicItem.modules.moduleAuthor,
-                  dynamicItem.basic.timestamp),
+              _buildAuthorInfo(dynamicItem.modules.moduleAuthor),
               const SizedBox(height: 8.0),
               // 动态内容
               contentWidget,
@@ -91,15 +84,12 @@ class DynamicItemWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildAuthorInfo(ModuleAuthor author, int timestamp) {
-    final dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
-    final timeAgoString = timeago.format(dateTime, locale: 'zh_CN');
-
+  Widget _buildAuthorInfo(ModuleAuthor author) {
     return Row(
       children: [
         CircleAvatar(
           radius: 20,
-          backgroundImage: NetworkImage(author.face),
+          backgroundImage: CachedNetworkImageProvider(author.face),
         ),
         const SizedBox(width: 8.0),
         Column(
@@ -107,62 +97,58 @@ class DynamicItemWidget extends StatelessWidget {
           children: [
             Text(author.name,
                 style: const TextStyle(fontWeight: FontWeight.bold)),
-            Text(timeAgoString, // TODO timeAgo时间显示错误
-                style: const TextStyle(color: Colors.grey, fontSize: 12.0)),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildVideoDynamic(DynamicArchive? archive) {
-    if (archive == null) return const SizedBox.shrink();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(archive.title,
-            style: const TextStyle(fontWeight: FontWeight.bold)),
-        const SizedBox(height: 4.0),
-        Text(archive.desc),
-        const SizedBox(height: 8.0),
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            CachedNetworkImage(
-              imageUrl: archive.cover,
-              fit: BoxFit.cover,
-              height: 200,
-              width: double.infinity,
-              // loadingBuilder: (context, child, loadingProgress) {
-              //   if (loadingProgress == null) return child;
-              //   return Container(
-              //     height: 200,
-              //     color: Colors.grey[300],
-              //     child: Center(
-              //       child: CircularProgressIndicator(
-              //         value: loadingProgress.expectedTotalBytes != null
-              //             ? loadingProgress.cumulativeBytesLoaded /
-              //                 loadingProgress.expectedTotalBytes!
-              //             : null,
-              //       ),
-              //     ),
-              //   );
-              // },
-              errorWidget: (context, error, stackTrace) => Container(
-                height: 200,
-                color: Colors.grey[300],
-                child: const Icon(Icons.error),
-              ),
+            Text(
+              author.pubTime,
+              style: const TextStyle(color: Colors.grey, fontSize: 12.0),
             ),
-            const Icon(Icons.play_circle_fill,
-                size: 50, color: Colors.white70), // Play button overlay
           ],
         ),
       ],
     );
   }
 
-  Widget _buildDrawDynamic(ModuleDesc? desc, DynamicDraw? draw) {
+  Widget _buildVideoDynamic(BuildContext context, DynamicArchive? archive) {
+    if (archive == null) return const SizedBox.shrink();
+    return GestureDetector(
+      onTap: () async {
+        final videoInfo = await VideoUrls.getVideoInfo(archive.bvid);
+        if (videoInfo['cid'] is! int || !context.mounted) return;
+        context.push(VideoPage(
+          cid: videoInfo['cid'],
+          avid: int.parse(archive.aid),
+          title: archive.title,
+        ));
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(archive.title,
+              style: const TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 4.0),
+          Text(archive.desc),
+          const SizedBox(height: 8.0),
+          Stack(
+            alignment: Alignment.bottomRight,
+            children: [
+              CachedNetworkImage(
+                imageUrl: archive.cover,
+                fit: BoxFit.cover,
+                height: 200,
+                width: double.infinity,
+              ),
+              const Icon(
+                Icons.play_circle_fill,
+                size: 50,
+                color: Colors.white,
+              ), // Play button overlay
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDrawDynamic(DynamicDesc? desc, DynamicDraw? draw) {
     if (draw == null || draw.items.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -182,7 +168,7 @@ class DynamicItemWidget extends StatelessWidget {
           itemBuilder: (context, index) {
             final item = draw.items[index];
             return CachedNetworkImage(
-             imageUrl:  item.src,
+              imageUrl: item.src,
               fit: BoxFit.cover,
               // loadingBuilder: (context, child, loadingProgress) {
               //   if (loadingProgress == null) return child;
@@ -204,12 +190,16 @@ class DynamicItemWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildWordDynamic(ModuleDesc? desc) {
+  Widget _buildWordDynamic(DynamicDesc? desc) {
     if (desc == null) return const SizedBox.shrink();
     return Text(desc.text);
   }
 
-  Widget _buildForwardDynamic(ModuleDesc? desc, DynamicOriginal? original) {
+  Widget _buildForwardDynamic(
+    BuildContext context,
+    DynamicDesc? desc,
+    DynamicOriginal? original,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -226,16 +216,11 @@ class DynamicItemWidget extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // 原始动态的作者信息
-                _buildAuthorInfo(
-                    original.modules.moduleAuthor,
-                    original
-                        .basic.timestamp), // Pass timestamp for original post
+                _buildAuthorInfo(original
+                    .modules.moduleAuthor), // Pass timestamp for original post
                 const SizedBox(height: 8.0),
                 // 原始动态的内容
-                _buildOriginalContent(original.modules),
-                const SizedBox(height: 8.0),
-                // 原始动态的统计信息
-                _buildStatInfo(original.modules.moduleStat),
+                _buildOriginalContent(context, original.modules),
               ],
             ),
           ),
@@ -243,16 +228,16 @@ class DynamicItemWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildOriginalContent(DynamicModules modules) {
+  Widget _buildOriginalContent(BuildContext context, DynamicModules modules) {
     // 根据原始动态的类型构建内容UI
     // Need to check the major type within moduleDynamic
     if (modules.moduleDynamic?.major?.archive != null) {
-      return _buildVideoDynamic(modules.moduleDynamic?.major?.archive);
+      return _buildVideoDynamic(context, modules.moduleDynamic?.major?.archive);
     } else if (modules.moduleDynamic?.major?.draw != null) {
       return _buildDrawDynamic(
-          modules.moduleDesc, modules.moduleDynamic?.major?.draw);
-    } else if (modules.moduleDesc != null) {
-      return _buildWordDynamic(modules.moduleDesc);
+          modules.moduleDynamic?.desc, modules.moduleDynamic?.major?.draw);
+    } else if (modules.moduleDynamic != null) {
+      return _buildWordDynamic(modules.moduleDynamic?.desc);
     } else if (modules.moduleDynamic?.major?.live != null) {
       // Add live type check
       return _buildLiveDynamic(modules.moduleDynamic?.major?.live);
@@ -266,30 +251,50 @@ class DynamicItemWidget extends StatelessWidget {
 
   Widget _buildStatInfo(ModuleStat stat) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        Row(
-          children: [
-            const Icon(Icons.share), // 转发图标
-            const SizedBox(width: 4.0),
-            Text(stat.share.count.toString()),
-          ],
+        Expanded(
+          child: GestureDetector(
+            onTap: Toast.unimplemented,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.share),
+                const SizedBox(width: 4.0),
+                // TODO 转发数量不正确
+                Text(stat.share.count > 0 ? stat.share.count.toString() : '转发'),
+              ],
+            ),
+          ),
         ),
-        Row(
-          children: [
-            const Icon(Icons.comment), // 评论图标
-            const SizedBox(width: 4.0),
-            Text(stat.comment.count.toString()),
-          ],
+        Expanded(
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: Toast.unimplemented,
+            child: Row(
+              children: [
+                const Icon(Icons.comment), // 评论图标
+                const SizedBox(width: 4.0),
+                Text(stat.comment.count > 0
+                    ? stat.comment.count.toString()
+                    : '评论'),
+              ],
+            ),
+          ),
         ),
-        Row(
-          children: [
-            Icon(stat.like.status
-                ? Icons.thumb_up
-                : Icons.thumb_up_outlined), // 点赞图标
-            const SizedBox(width: 4.0),
-            Text(stat.like.count.toString()),
-          ],
+        Expanded(
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: Toast.unimplemented,
+            child: Row(
+              children: [
+                Icon(stat.like.status
+                    ? Icons.thumb_up
+                    : Icons.thumb_up_outlined), // 点赞图标
+                const SizedBox(width: 4.0),
+                Text(stat.like.count > 0 ? stat.like.count.toString() : '点赞'),
+              ],
+            ),
+          ),
         ),
       ],
     );
@@ -311,25 +316,10 @@ class DynamicItemWidget extends StatelessWidget {
           alignment: Alignment.bottomLeft,
           children: [
             CachedNetworkImage(
-             imageUrl:  live.cover,
+              imageUrl: live.cover,
               fit: BoxFit.cover,
               height: 150,
               width: double.infinity,
-              // loadingBuilder: (context, child, loadingProgress) {
-              //   if (loadingProgress == null) return child;
-              //   return Container(
-              //     height: 150,
-              //     color: Colors.red[100],
-              //     child: Center(
-              //       child: CircularProgressIndicator(
-              //         value: loadingProgress.expectedTotalBytes != null
-              //             ? loadingProgress.cumulativeBytesLoaded /
-              //                 loadingProgress.expectedTotalBytes!
-              //             : null,
-              //       ),
-              //     ),
-              //   );
-              // },
               errorWidget: (context, error, stackTrace) => Container(
                 height: 150,
                 color: Colors.red[100],
@@ -370,7 +360,7 @@ class DynamicItemWidget extends StatelessWidget {
         // 显示专栏封面
         if (article.covers.isNotEmpty)
           CachedNetworkImage(
-          imageUrl:   article.covers.first,
+            imageUrl: article.covers.first,
             fit: BoxFit.cover,
             height: 150,
             width: double.infinity,

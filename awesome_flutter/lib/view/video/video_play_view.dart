@@ -45,7 +45,7 @@ class _VidioPlayViewState extends State<VidioPlayView> {
     if (_brightnessSetting) {
       await PlayerState.setBrightness(delta);
     } else if (_volumeSetting) {
-      await PlayerState.setVolume(delta, widget.cntlr);
+      PlayerState.setVolume(delta, widget.cntlr);
     }
     setState(() {}); // 更新UI显示当前亮度或音量
   }

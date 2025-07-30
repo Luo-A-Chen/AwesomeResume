@@ -35,7 +35,7 @@ dependencies:
   universal_platform: # 平台判断，适配鸿蒙
     git:
       url: "https://github.com/qinshah/flutter-universal-platform.git"
-  flutter_svg: ^2.2.0
+  flutter_svg: ^2.2.0 # svg图标
 
 dependency_overrides:
   path_provider:

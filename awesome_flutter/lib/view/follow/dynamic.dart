@@ -178,14 +178,10 @@ class DynamicBasic {
   /// 资源ID字符串
   final String ridStr;
 
-  /// 时间戳
-  final int timestamp;
-
   DynamicBasic({
     required this.commentIdStr,
     required this.commentType,
     required this.ridStr,
-    required this.timestamp,
   });
 
   factory DynamicBasic.fromJson(Map<String, dynamic> json) {
@@ -193,7 +189,6 @@ class DynamicBasic {
       commentIdStr: json['comment_id_str'] ?? '',
       commentType: json['comment_type'] ?? 0,
       ridStr: json['rid_str'] ?? '',
-      timestamp: json['timestamp'] ?? 0,
     );
   }
 }
@@ -224,9 +219,6 @@ class DynamicModules {
   /// 作者信息模块
   final ModuleAuthor moduleAuthor;
 
-  /// 描述信息模块 (可能为空)
-  final ModuleDesc? moduleDesc;
-
   /// 动态主要内容模块 (可能为空)
   final ModuleDynamic? moduleDynamic;
 
@@ -238,7 +230,6 @@ class DynamicModules {
 
   DynamicModules({
     required this.moduleAuthor,
-    this.moduleDesc,
     this.moduleDynamic,
     required this.moduleStat,
     this.modulePic,
@@ -247,10 +238,6 @@ class DynamicModules {
   factory DynamicModules.fromJson(Map<String, dynamic> json) {
     return DynamicModules(
       moduleAuthor: ModuleAuthor.fromJson(json['module_author'] ?? {}),
-      moduleDesc: json['module_dynamic'] != null
-          ? ModuleDesc.fromJson(json[
-              'module_dynamic']) // Assuming ModuleDesc is part of module_dynamic
-          : null,
       moduleDynamic: json['module_dynamic'] != null
           ? ModuleDynamic.fromJson(
               json['module_dynamic']) // ModuleDynamic contains major
@@ -268,6 +255,8 @@ class ModuleAuthor {
   /// 用户头像URL
   final String face;
 
+  final String pubTime;
+
   /// 是否为NFT头像
   final bool faceNft;
 
@@ -284,6 +273,7 @@ class ModuleAuthor {
   final OfficialVerify? officialVerify;
 
   ModuleAuthor({
+    required this.pubTime,
     required this.face,
     required this.faceNft,
     required this.mid,
@@ -294,6 +284,7 @@ class ModuleAuthor {
 
   factory ModuleAuthor.fromJson(Map<String, dynamic> json) {
     return ModuleAuthor(
+      pubTime: json['pub_time'] ?? '未知时间',
       face: json['face'] ?? '',
       faceNft: json['face_nft'] ?? false,
       mid: json['mid'] ?? 0,
@@ -327,35 +318,38 @@ class OfficialVerify {
   }
 }
 
-/// 动态描述信息模型
-class ModuleDesc {
-  /// 描述文本内容
-  final String text;
-
-  ModuleDesc({
-    required this.text,
-  });
-
-  factory ModuleDesc.fromJson(Map<String, dynamic> json) {
-    return ModuleDesc(
-      text: json['desc']?['text'] ?? '',
-    );
-  }
-}
-
 /// 动态主要内容模型
 class ModuleDynamic {
   /// 主要内容，根据动态类型包含不同信息
   final DynamicMajor? major;
 
+  /// 文字内容
+  final DynamicDesc? desc;
+
   ModuleDynamic({
     this.major,
+    this.desc,
   });
 
   factory ModuleDynamic.fromJson(Map<String, dynamic> json) {
     return ModuleDynamic(
       major:
           json['major'] != null ? DynamicMajor.fromJson(json['major']) : null,
+      desc: json['desc'] != null ? DynamicDesc.fromJson(json['desc']) : null,
+    );
+  }
+}
+
+/// 转发动态文字内容
+class DynamicDesc {
+  /// 动态的文字内容
+  final String text;
+
+  DynamicDesc({required this.text});
+
+  factory DynamicDesc.fromJson(Map<String, dynamic> json) {
+    return DynamicDesc(
+      text: json['text'] ?? '',
     );
   }
 }
@@ -601,16 +595,12 @@ class ModuleStat {
   /// 点赞统计
   final DynamicStat like;
 
-  /// 播放统计 (视频动态)
-  final DynamicStat play;
-
   /// 分享统计
   final DynamicStat share;
 
   ModuleStat({
     required this.comment,
     required this.like,
-    required this.play,
     required this.share,
   });
 
@@ -618,8 +608,7 @@ class ModuleStat {
     return ModuleStat(
       comment: DynamicStat.fromJson(json['comment'] ?? {}),
       like: DynamicStat.fromJson(json['like'] ?? {}),
-      play: DynamicStat.fromJson(json['play'] ?? {}),
-      share: DynamicStat.fromJson(json['share'] ?? {}),
+      share: DynamicStat.fromJson(json['forward'] ?? {}),
     );
   }
 }
@@ -640,7 +629,7 @@ class DynamicStat {
   factory DynamicStat.fromJson(Map<String, dynamic> json) {
     return DynamicStat(
       count: json['count'] ?? 0,
-      status: json['status']?? false,
+      status: json['status'] ?? false,
     );
   }
 }

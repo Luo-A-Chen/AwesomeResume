@@ -29,7 +29,7 @@ class _LoginPageState extends State<LoginPage> {
   void dispose() {
     _phoneController.dispose();
     _passwordController.dispose();
-    AuthProvider().pollTimer?.cancel(); // 取消轮询定时器
+    AuthProvider().stopPolling(); // 停止轮询
     super.dispose();
   }
 

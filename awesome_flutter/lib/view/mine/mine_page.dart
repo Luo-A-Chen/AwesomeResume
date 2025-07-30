@@ -27,22 +27,23 @@ class _MinePageState extends State<MinePage> {
         ],
       ),
       body: Center(
-        child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            minimumSize: const Size(250, 40),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(5),
-            ),
-          ),
-          onPressed: AuthProvider().isLogIn
-              ? null // 如果已登录，则按钮不可点击
-              : () {
+        child: AuthProvider().isLogIn
+            ? ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    AuthProvider().logout();
+                  });
+                },
+                child: Text('退出登录'),
+              )
+            : ElevatedButton(
+                onPressed: () {
                   context.push(const LoginPage()).then((_) {
                     setState(() {});
                   });
                 },
-          child: const Text('登录'),
-        ),
+                child: Text('登录'),
+              ),
       ),
     );
   }

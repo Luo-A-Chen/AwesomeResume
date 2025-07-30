@@ -16,7 +16,7 @@ gitee(镜像) https://gitee.com/qinshah/AwesomeResume.git
 
 ## awesome_flutter，前期开发以第三方哔哩哔哩为主
 
-原项目仓库(https://gitee.com/qinshah/blbl)不再更新
+原项目仓库[https://gitee.com/qinshah/blbl](https://)不再更新
 
 ### 开发进度
 

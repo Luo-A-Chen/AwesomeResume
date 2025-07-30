@@ -158,7 +158,7 @@ class AuthProvider with ChangeNotifier {
             break;
           case 86038: // 二维码已失效
             _updateQRStatus(QRCodeStatus.expired, '二维码已过期，请点击刷新');
-            _stopPolling();
+            stopPolling();
             break;
           default:
             _updateQRStatus(QRCodeStatus.error, message ?? '未知错误');
@@ -173,7 +173,7 @@ class AuthProvider with ChangeNotifier {
   /// 处理登录成功
   Future<void> _handleLoginSuccess(Map<String, dynamic> data) async {
     try {
-      _stopPolling();
+      stopPolling();
       _updateQRStatus(QRCodeStatus.success, '登录成功');
 
       // 从响应中提取cookie信息
@@ -222,8 +222,6 @@ class AuthProvider with ChangeNotifier {
       await prefs.remove('bili_jct');
       await prefs.remove('DedeUserID');
       await prefs.remove('DedeUserID__ckMd5');
-
-      _isLoggedIn = false;
       _userInfo = null;
       _sessData = null;
       _biliJct = null;
@@ -244,7 +242,7 @@ class AuthProvider with ChangeNotifier {
   }
 
   /// 停止轮询
-  void _stopPolling() {
+  void stopPolling() {
     _isPolling = false;
     pollTimer?.cancel();
     pollTimer = null;
@@ -252,13 +250,13 @@ class AuthProvider with ChangeNotifier {
 
   /// 刷新二维码
   Future<void> refreshQRCode() async {
-    _stopPolling();
+    stopPolling();
     await generateQRCode();
   }
 
   /// 登出
   Future<void> logout() async {
-    _stopPolling();
+    _isLoggedIn = false;
     await _clearLoginData();
   }
 
@@ -273,7 +271,7 @@ class AuthProvider with ChangeNotifier {
 
   @override
   void dispose() {
-    _stopPolling();
+    stopPolling();
     super.dispose();
   }
 }
