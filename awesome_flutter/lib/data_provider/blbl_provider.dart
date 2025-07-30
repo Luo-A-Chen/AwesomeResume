@@ -172,7 +172,6 @@ class BlblProvider extends DataProvider {
     var cookies = res.headers['set-cookie'];
     cookies?.add(('SESSDATA=xxx'));
     final cookie = cookies?.join('; ');
-    print('cookie: $cookie');
     // 设置baseUrl和cookie
     Http.setOptions(BaseOptions(
       baseUrl: 'https://api.bilibili.com/x',

@@ -88,26 +88,28 @@ class _VideoPageState extends State<VideoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(toolbarHeight: 0, backgroundColor: Colors.black),
       body: DefaultTabController(
         length: 2,
-        child: Column(children: [
-          Container(
-            color: Colors.black,
-            height: 9 / 16 * MediaQuery.of(context).size.width,
-            child: _loading
-                ? null
-                : VidioPlayView(
-                    avid: widget.avid,
-                    cid: widget.cid,
-                    cntlr: _videoCntlr,
-                    isfullScreen: false,
-                  ),
+        child: CustomScrollView(slivers: [
+          SliverToBoxAdapter(
+            child: SizedBox(
+              height: 9 / 16 * MediaQuery.of(context).size.width,
+              child: _loading
+                  ? null
+                  : VidioPlayView(
+                      avid: widget.avid,
+                      cid: widget.cid,
+                      cntlr: _videoCntlr,
+                      isfullScreen: false,
+                    ),
+            ),
           ),
           // 标签栏
-          const TabBar(tabs: [Tab(text: '简介'), Tab(text: '评论')]),
-          Expanded(
+          SliverToBoxAdapter(
+            child: const TabBar(tabs: [Tab(text: '简介'), Tab(text: '评论')]),
+          ),
+          SliverFillRemaining(
             child: TabBarView(
               children: [
                 // 简介页面

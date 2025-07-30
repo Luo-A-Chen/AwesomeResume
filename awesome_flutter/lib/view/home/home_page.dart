@@ -190,10 +190,13 @@ class _HomePageState extends State<HomePage>
                       const Icon(Icons.comment_outlined,
                           size: 14, color: Colors.white),
                       const SizedBox(width: 2),
-                      Text(
-                        _formatCount(video.stat.danmaku),
-                        style:
-                            const TextStyle(fontSize: 12, color: Colors.white),
+                      Expanded(
+                        child: Text(
+                          maxLines: 1,
+                          _formatCount(video.stat.danmaku),
+                          style: const TextStyle(
+                              fontSize: 12, color: Colors.white),
+                        ),
                       ),
                       Expanded(
                         child: Text(

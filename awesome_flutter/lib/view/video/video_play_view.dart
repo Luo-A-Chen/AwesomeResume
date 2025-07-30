@@ -193,51 +193,14 @@ class _VidioPlayViewState extends State<VidioPlayView> {
       onHover: _tapKind == PointerDeviceKind.mouse
           ? (_) => _toggleControls(true)
           : null,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          SizedBox.expand(), // 让Stack填满
-          GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onTap: _tapKind == PointerDeviceKind.mouse
-                ? _togglePlay
-                : _toggleControls,
-            onLongPressStart: (_) {
-              setState(() {
-                widget.cntlr.setPlaybackSpeed(2.0); // 设置倍速播放
-                _longPressing = true;
-              });
-            },
-            onLongPressEnd: (_) {
-              setState(() {
-                widget.cntlr.setPlaybackSpeed(1.0); // 恢复正常速度
-                _longPressing = false;
-              });
-            },
-            onTapDown: (details) {
-              _tapKind = details.kind;
-            },
-            onDoubleTap: _tapKind == PointerDeviceKind.mouse
-                ? _toggleFullScreen
-                : _togglePlay,
-            onVerticalDragStart: (details) => setState(() {
-              _dragLeft = details.localPosition.dx <
-                  MediaQuery.of(context).size.width / 2;
-              _dragLeft ? _brightnessSetting = true : _volumeSetting = true;
-            }),
-            onVerticalDragEnd: (_) => setState(() {
-              _brightnessSetting = false;
-              _volumeSetting = false;
-            }),
-            onVerticalDragUpdate: _setBrightnessOrVolume,
-            onHorizontalDragStart: (_) => setState(() {
-              _positionSetting = true;
-            }),
-            onHorizontalDragEnd: (_) => setState(() {
-              _positionSetting = false;
-            }),
-            onHorizontalDragUpdate: _setPosition,
-            child: widget.cntlr.value.hasError
+      child: ColoredBox(
+        color: Colors.black,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // SizedBox.expand(), // 让Stack填满
+            // 视频本身
+            widget.cntlr.value.hasError
                 ? const Center(
                     child: Text(
                       '视频加载失败',
@@ -249,30 +212,72 @@ class _VidioPlayViewState extends State<VidioPlayView> {
                     aspectRatio: widget.cntlr.value.aspectRatio,
                     child: VideoPlayer(widget.cntlr),
                   ),
-          ),
-          _centerHub(), // 中间的提示信息
-          // 控制界面
-          if (_showControls)
-            ..._hub()
-          else
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: 7, // 和哔哩哔哩比较一致
-              child: SizedBox(
-                child: VideoProgressIndicator(
-                  widget.cntlr,
-                  allowScrubbing: false,
+        
+            _messageHub(), // 中间的提示信息
+            // 注意GestureDetector的层级顺序
+            // 感觉就是放在控制Hub层的下一层
+            GestureDetector(
+              onTap: _tapKind == PointerDeviceKind.mouse
+                  ? _togglePlay
+                  : _toggleControls,
+              onLongPressStart: (_) {
+                setState(() {
+                  widget.cntlr.setPlaybackSpeed(2.0); // 设置倍速播放
+                  _longPressing = true;
+                });
+              },
+              onLongPressEnd: (_) {
+                setState(() {
+                  widget.cntlr.setPlaybackSpeed(1.0); // 恢复正常速度
+                  _longPressing = false;
+                });
+              },
+              onTapDown: (details) {
+                _tapKind = details.kind;
+              },
+              onDoubleTap: _tapKind == PointerDeviceKind.mouse
+                  ? _toggleFullScreen
+                  : _togglePlay,
+              onVerticalDragStart: (details) => setState(() {
+                _dragLeft = details.localPosition.dx <
+                    MediaQuery.of(context).size.width / 2;
+                _dragLeft ? _brightnessSetting = true : _volumeSetting = true;
+              }),
+              onVerticalDragEnd: (_) => setState(() {
+                _brightnessSetting = false;
+                _volumeSetting = false;
+              }),
+              onVerticalDragUpdate: _setBrightnessOrVolume,
+              onHorizontalDragStart: (_) => setState(() {
+                _positionSetting = true;
+              }),
+              onHorizontalDragEnd: (_) => setState(() {
+                _positionSetting = false;
+              }),
+              onHorizontalDragUpdate: _setPosition,
+            ),
+            if (_showControls)
+              ..._hub() // 控制Hub
+            else // 底部细小进度条
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: 7, // 和哔哩哔哩比较一致
+                child: SizedBox(
+                  child: VideoProgressIndicator(
+                    widget.cntlr,
+                    allowScrubbing: false,
+                  ),
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _centerHub() {
+  Widget _messageHub() {
     String? centent;
     if (_longPressing) {
       centent = '倍数播放中';
