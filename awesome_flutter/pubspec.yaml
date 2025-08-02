@@ -2,7 +2,7 @@ name: awesome_flutter
 description: "flutter开发的软件"
 publish_to: "none"
 
-version: 1.1.0+2
+version: 2025.8.3+2
 
 environment:
   sdk: ^3.6.2
