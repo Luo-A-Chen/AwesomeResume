@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:ui';
+import 'package:auto_orientation/auto_orientation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:awesome_flutter/api/nav_extension.dart';
@@ -39,6 +40,7 @@ class _VidioPlayViewState extends State<VidioPlayView> {
   PointerDeviceKind? _tapKind; // 可以判断是鼠标还是触屏等
   bool _dragLeft = false; // 用于判断左右
   bool _longPressing = false; // 判断是否长按倍数播放
+  bool _isLock = false; // 是否锁定
 
   Future<void> _setBrightnessOrVolume(DragUpdateDetails details) async {
     final delta = -details.delta.dy * 0.01; // 调整灵敏度
@@ -79,57 +81,41 @@ class _VidioPlayViewState extends State<VidioPlayView> {
     }
   }
 
-  Future<void> _exitFullScreen() async {
+  void _exitFullScreen() {
     // 退出全屏时，恢复屏幕方向
-    await SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
+    AutoOrientation.setScreenOrientationUser();
     // 恢复状态栏
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
-        overlays: SystemUiOverlay.values);
-    // ignore: use_build_context_synchronously
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: SystemUiOverlay.values,
+    );
     context.pop();
   }
 
-  void _enterFullScreen() async {
-    // 如果视频是横屏内容，需要锁定屏幕方向为横向
+  void _enterFullScreen() {
     if (widget.cntlr.value.aspectRatio > 1) {
-      print('锁定屏幕方向为横向');
-      await SystemChrome.setPreferredOrientations([
-        DeviceOrientation.landscapeLeft,
-        DeviceOrientation.landscapeRight,
-      ]);
-      // 隐藏状态栏
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+      // 如果视频是横屏内容，需要锁定屏幕方向为横向
+      AutoOrientation.landscapeAutoMode();
+      // 设置状态栏全屏显示模式
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     }
-    // ignore: use_build_context_synchronously
     context.push(Scaffold(
-      body: SafeArea(
-        child: PopScope(
-          canPop: false,
-          // 重写返回按钮的行为
-          onPopInvoked: (didPop) {
-            if (!didPop) _exitFullScreen();
-          },
-          child: VidioPlayView(
-            title: widget.title,
-            isfullScreen: true,
-            avid: widget.avid,
-            cntlr: widget.cntlr,
-            cid: widget.cid,
-          ),
-        ),
+      body: VidioPlayView(
+        title: widget.title,
+        isfullScreen: true,
+        avid: widget.avid,
+        cntlr: widget.cntlr,
+        cid: widget.cid,
       ),
     ));
   }
 
-  void _toggleFullScreen() async {
+  void _toggleFullScreen() {
     // Toast.showWarning('全屏切换待开发');
     // TODO 全屏功能
     if (widget.isfullScreen) {
       // 退出全屏
-      await _exitFullScreen();
+      _exitFullScreen();
     } else {
       // 进入全屏
       _enterFullScreen();
@@ -183,95 +169,141 @@ class _VidioPlayViewState extends State<VidioPlayView> {
   @override
   Widget build(BuildContext context) {
     // MouseRegion包裹在Stack外层，防止GestureDetector与_hub竞争监听
-    return MouseRegion(
-      onEnter: _tapKind == PointerDeviceKind.mouse
-          ? (_) => _toggleControls(true)
-          : null,
-      onExit: _tapKind == PointerDeviceKind.mouse
-          ? (_) => _toggleControls(false)
-          : null,
-      onHover: _tapKind == PointerDeviceKind.mouse
-          ? (_) => _toggleControls(true)
-          : null,
-      child: ColoredBox(
-        color: Colors.black,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // SizedBox.expand(), // 让Stack填满
-            // 视频本身
-            widget.cntlr.value.hasError
-                ? const Center(
-                    child: Text(
-                      '视频加载失败',
-                      style: TextStyle(color: Colors.white),
-                      textAlign: TextAlign.center,
+    return PopScope(
+      canPop: !widget.isfullScreen,
+      // 重写返回按钮的行为
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          if (!_isLock) {
+            _exitFullScreen();
+          } else {
+            _toggleControls(true);
+          }
+        }
+      },
+      child: MouseRegion(
+        onEnter: _tapKind == PointerDeviceKind.mouse
+            ? (_) => _toggleControls(true)
+            : null,
+        onExit: _tapKind == PointerDeviceKind.mouse
+            ? (_) => _toggleControls(false)
+            : null,
+        onHover: _tapKind == PointerDeviceKind.mouse
+            ? (_) => _toggleControls(true)
+            : null,
+        child: ColoredBox(
+          color: Colors.black,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // SizedBox.expand(), // 让Stack填满
+              // 视频本身
+              widget.cntlr.value.hasError
+                  ? const Center(
+                      child: Text(
+                        '视频加载失败',
+                        style: TextStyle(color: Colors.white),
+                        textAlign: TextAlign.center,
+                      ),
+                    )
+                  : AspectRatio(
+                      aspectRatio: widget.cntlr.value.aspectRatio,
+                      child: VideoPlayer(widget.cntlr),
                     ),
-                  )
-                : AspectRatio(
-                    aspectRatio: widget.cntlr.value.aspectRatio,
-                    child: VideoPlayer(widget.cntlr),
-                  ),
-        
-            _messageHub(), // 中间的提示信息
-            // 注意GestureDetector的层级顺序
-            // 感觉就是放在控制Hub层的下一层
-            GestureDetector(
-              onTap: _tapKind == PointerDeviceKind.mouse
-                  ? _togglePlay
-                  : _toggleControls,
-              onLongPressStart: (_) {
-                setState(() {
-                  widget.cntlr.setPlaybackSpeed(2.0); // 设置倍速播放
-                  _longPressing = true;
-                });
-              },
-              onLongPressEnd: (_) {
-                setState(() {
-                  widget.cntlr.setPlaybackSpeed(1.0); // 恢复正常速度
-                  _longPressing = false;
-                });
-              },
-              onTapDown: (details) {
-                _tapKind = details.kind;
-              },
-              onDoubleTap: _tapKind == PointerDeviceKind.mouse
-                  ? _toggleFullScreen
-                  : _togglePlay,
-              onVerticalDragStart: (details) => setState(() {
-                _dragLeft = details.localPosition.dx <
-                    MediaQuery.of(context).size.width / 2;
-                _dragLeft ? _brightnessSetting = true : _volumeSetting = true;
-              }),
-              onVerticalDragEnd: (_) => setState(() {
-                _brightnessSetting = false;
-                _volumeSetting = false;
-              }),
-              onVerticalDragUpdate: _setBrightnessOrVolume,
-              onHorizontalDragStart: (_) => setState(() {
-                _positionSetting = true;
-              }),
-              onHorizontalDragEnd: (_) => setState(() {
-                _positionSetting = false;
-              }),
-              onHorizontalDragUpdate: _setPosition,
-            ),
-            if (_showControls)
-              ..._hub() // 控制Hub
-            else // 底部细小进度条
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                height: 7, // 和哔哩哔哩比较一致
-                child: SizedBox(
-                  child: VideoProgressIndicator(
-                    widget.cntlr,
-                    allowScrubbing: false,
-                  ),
+
+              _messageHub(), // 中间的提示信息
+              // 注意GestureDetector的层级顺序
+              // 感觉就是放在控制Hub层的下一层
+              Padding(
+                // TODO 防止操作状态栏时误触，具体值未测试
+                padding: const EdgeInsets.only(top: 50),
+                child: GestureDetector(
+                  onTap: _tapKind == PointerDeviceKind.mouse
+                      ? _togglePlay
+                      : _toggleControls,
+                  onLongPressStart: (_) {
+                    setState(() {
+                      widget.cntlr.setPlaybackSpeed(2.0); // 设置倍速播放
+                      _longPressing = true;
+                    });
+                  },
+                  onLongPressEnd: (_) {
+                    setState(() {
+                      widget.cntlr.setPlaybackSpeed(1.0); // 恢复正常速度
+                      _longPressing = false;
+                    });
+                  },
+                  onTapDown: (details) {
+                    _tapKind = details.kind;
+                  },
+                  onDoubleTap: _tapKind == PointerDeviceKind.mouse
+                      ? _toggleFullScreen
+                      : _togglePlay,
+                  onVerticalDragStart: (details) => setState(() {
+                    _dragLeft = details.localPosition.dx <
+                        MediaQuery.of(context).size.width / 2;
+                    _dragLeft
+                        ? _brightnessSetting = true
+                        : _volumeSetting = true;
+                  }),
+                  onVerticalDragEnd: (_) => setState(() {
+                    _brightnessSetting = false;
+                    _volumeSetting = false;
+                  }),
+                  onVerticalDragUpdate: _setBrightnessOrVolume,
+                  onHorizontalDragStart: (_) => setState(() {
+                    _positionSetting = true;
+                  }),
+                  onHorizontalDragEnd: (_) => setState(() {
+                    _positionSetting = false;
+                  }),
+                  onHorizontalDragUpdate: _setPosition,
                 ),
               ),
-          ],
+              if (!_isLock && _showControls)
+                ..._hub() // 控制Hub
+              else
+                // 底部细小进度条
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  height: 7, // 和哔哩哔哩比较一致
+                  child: SizedBox(
+                    child: VideoProgressIndicator(
+                      widget.cntlr,
+                      allowScrubbing: false,
+                    ),
+                  ),
+                ),
+              if (_isLock) ...[
+                GestureDetector(
+                  onPanDown: (_) => _toggleControls(),
+                  child: Container(
+                    width: double.infinity,
+                    height: double.infinity,
+                    color: Colors.transparent,
+                  ),
+                ),
+                if (_showControls) ...[
+                  Positioned(
+                    left: 40,
+                    child: IconButton(
+                      icon: Icon(Icons.lock, color: Colors.white),
+                      onPressed: () => setState(() => _isLock = false),
+                    ),
+                  ),
+                  Positioned(
+                    right: 10,
+                    child: IconButton(
+                      icon: Icon(Icons.lock, color: Colors.white),
+                      onPressed: () => setState(() => _isLock = false),
+                    ),
+                  ),
+                ]
+              ]
+            ],
+          ),
         ),
       ),
     );
@@ -339,6 +371,16 @@ class _VidioPlayViewState extends State<VidioPlayView> {
           ),
         ),
       ),
+
+      // 锁定按钮
+      if (widget.isfullScreen)
+        Positioned(
+          right: 10,
+          child: IconButton(
+            icon: Icon(Icons.lock_open, color: Colors.white),
+            onPressed: () => setState(() => _isLock = true),
+          ),
+        ),
 
       // 底部控制栏
       Positioned(
