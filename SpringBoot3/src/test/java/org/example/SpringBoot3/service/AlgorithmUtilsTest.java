@@ -15,10 +15,9 @@ public class AlgorithmUtilsTest {
 
     @Test
     void test() {
-        String str1 = "鱼皮是狗";
-        String str2 = "鱼皮不是狗";
-        String str3 = "鱼皮是鱼不是狗";
-//        String str4 = "鱼皮是猫";
+        String str1 = "罗琛是狗";
+        String str2 = "罗琛不是狗";
+        String str3 = "罗琛是鱼不是狗";
         // 1
         int score1 = AlgorithmUtils.minDistance(str1, str2);
         // 3

@@ -16,7 +16,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 /* 放自己的前端域名*/
                 .allowedOrigins("http://localhost:5173", "http://127.0.0.1:5173", "http://127.0.0.1:8082", "http://127.0.0.1:8083")
                 //是否允许证书 不再默认开启
-                .allowCredentials(true)
+                .allowCredentials(false)
                 //设置允许的方法
                 .allowedMethods("*")
                 //跨域允许时间
