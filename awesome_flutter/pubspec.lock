@@ -17,6 +17,15 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "2.13.0"
+  auto_orientation:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: c449d0fd0b00d955471fda9a0135ba31dd111eb5
+      url: "https://gitcode.com/openharmony-sig/fluttertpc_auto_orientation"
+    source: git
+    version: "2.3.1"
   cached_network_image:
     dependency: "direct main"
     description:
