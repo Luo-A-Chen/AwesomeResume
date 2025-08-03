@@ -18,18 +18,6 @@ spring:
       host: localhost
       port: 6379
       dataBase: 1
-# springdoc-openapi项目配置
-springdoc:
-  swagger-ui:
-    path: /swagger-ui.html
-    tags-sorter: alpha
-    operations-sorter: alpha
-  api-docs:
-    path: /v3/api-docs
-  group-configs:
-    - group: '接口文档测试'
-      paths-to-match: '/**'
-      packages-to-scan: src/main/java/org/example/SpringBoot3/controller
 server:
   port: 8080
 mybatis-plus:
