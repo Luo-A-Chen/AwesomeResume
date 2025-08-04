@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:fluttertoast/fluttertoast.dart' as f_toast;
+import 'package:window_manager/window_manager.dart';
 
 import 'api/toast.dart';
 import 'api/local_storage.dart';
@@ -16,6 +17,13 @@ Future<void> main() async {
   await Settings.instance.dataProvider?.initHttp(); // 初始化网络请求
   await AuthProvider().init(); // TODO 暂时只针对blbl
   await PlayerState.initState(); // 初始化播放器状态
+  try {
+    await windowManager.ensureInitialized();
+  } catch (e) {
+    // TODO 鸿蒙不支持
+    print(e);
+  }
+// 初始化窗口管理
   runApp(RestartableApp(keyNotifier: Settings.instance.appKeyNotifier));
 }
 

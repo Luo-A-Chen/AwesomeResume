@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:ui';
-import 'package:auto_orientation/auto_orientation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:awesome_flutter/api/nav_extension.dart';
 import 'package:video_player/video_player.dart';
+import 'package:window_manager/window_manager.dart';
 
 import '../../state/player_state.dart';
 
@@ -82,8 +82,14 @@ class _VidioPlayViewState extends State<VidioPlayView> {
   }
 
   void _exitFullScreen() {
+    try {
+      windowManager.setFullScreen(false);
+    } catch (e) {
+      // TODO 鸿蒙不支持
+      print(e);
+    }
     // 退出全屏时，恢复屏幕方向
-    AutoOrientation.setScreenOrientationUser();
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     // 恢复状态栏
     SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.manual,
@@ -93,9 +99,18 @@ class _VidioPlayViewState extends State<VidioPlayView> {
   }
 
   void _enterFullScreen() {
+    try {
+      windowManager.setFullScreen(true);
+    } catch (e) {
+      // TODO 鸿蒙不支持
+      print(e);
+    }
     if (widget.cntlr.value.aspectRatio > 1) {
       // 如果视频是横屏内容，需要锁定屏幕方向为横向
-      AutoOrientation.landscapeAutoMode();
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ]);
       // 设置状态栏全屏显示模式
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     }
