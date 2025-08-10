@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +17,7 @@ import 'view/settings/settings.dart';
 import 'view/mine/auth_provider.dart';
 
 Future<void> main() async {
-  VirtualGesturesBinding(); // 触摸模拟
+  TouchBallBinding(); // 初始化全局触摸球
   WidgetsFlutterBinding.ensureInitialized();
   await LocalStorage.initSP(); // 必须在运行软件前初始化本地存储
   await Settings.loadFromLocal(); // 从本地加载设置
@@ -48,67 +50,76 @@ class _RestartableAppState extends State<RestartableApp> {
       valueListenable: widget.keyNotifier,
       builder: (context, key, _) {
         final primaryColor = Color(0xffFB7299);
-        return MaterialApp(
-          key: key,
-          builder: f_toast.FToastBuilder(),
-          debugShowCheckedModeBanner: false,
-          theme: ThemeData(
-            primaryColor: primaryColor,
-            appBarTheme: AppBarTheme(
-              backgroundColor: Colors.white,
-              // 禁用滑动内容后appbar变色
-              scrolledUnderElevation: 0,
-            ),
-            colorScheme: ColorScheme.fromSeed(seedColor: primaryColor),
-            scaffoldBackgroundColor:
-                const Color.fromRGBO(238, 238, 238, 1), // 背景色
-            splashFactory: NoSplash.splashFactory, // 禁用涟漪效果
-            elevatedButtonTheme: ElevatedButtonThemeData(
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white, // 按钮文字颜色
-                backgroundColor: primaryColor, // 按钮背景颜色
-              ),
-            ),
-            bottomNavigationBarTheme: BottomNavigationBarThemeData(
-              selectedItemColor: primaryColor,
-              type: BottomNavigationBarType.fixed,
-            ),
-          ),
-          // 语言设置
-          locale: const Locale('zh', 'CN'),
-          supportedLocales: const [Locale('zh', 'CN'), Locale('en', 'US')],
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          home: Stack(
-            children: [
-              FocusScope(
-                canRequestFocus: false,
-                child: Builder(builder: (context) {
-                  Toast.init(context); // 初始化toast
-                  return const MainPage();
-                }),
-              ), // 虚拟鼠标光标
-              ValueListenableBuilder<Offset>(
-                valueListenable: VirtualGesturesBinding.cursorListenable,
-                builder: (_, offset, __) => Positioned(
-                  left: offset.dx - 8,
-                  top: offset.dy - 8,
-                  child: IgnorePointer(
-                    child: Container(
-                      width: 16,
-                      height: 16,
-                      decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.7),
-                        shape: BoxShape.circle,
+        return FocusScope(
+          // 禁用焦点
+          canRequestFocus: false,
+          child: MaterialApp(
+            key: key,
+            builder: (context, child) {
+              // 首先应用 FToast builder
+              Widget toastChild = f_toast.FToastBuilder().call(context, child);
+              // 然后添加触控球
+              return Stack(
+                children: [
+                  toastChild,
+                  // 全局虚拟触控球
+                  ValueListenableBuilder<Offset>(
+                    valueListenable: TouchBallBinding.positionNotifier,
+                    builder: (_, offset, __) => Positioned(
+                      left: offset.dx - 8,
+                      top: offset.dy - 8,
+                      child: IgnorePointer(
+                        child: Container(
+                          width: 16,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            color: Colors.red.withOpacity(0.7),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
                       ),
                     ),
                   ),
+                ],
+              );
+            },
+            debugShowCheckedModeBanner: false,
+            theme: ThemeData(
+              primaryColor: primaryColor,
+              appBarTheme: AppBarTheme(
+                backgroundColor: Colors.white,
+                // 禁用滑动内容后appbar变色
+                scrolledUnderElevation: 0,
+              ),
+              colorScheme: ColorScheme.fromSeed(seedColor: primaryColor),
+              scaffoldBackgroundColor:
+                  const Color.fromRGBO(238, 238, 238, 1), // 背景色
+              splashFactory: NoSplash.splashFactory, // 禁用涟漪效果
+              elevatedButtonTheme: ElevatedButtonThemeData(
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white, // 按钮文字颜色
+                  backgroundColor: primaryColor, // 按钮背景颜色
                 ),
               ),
+              bottomNavigationBarTheme: BottomNavigationBarThemeData(
+                selectedItemColor: primaryColor,
+                type: BottomNavigationBarType.fixed,
+              ),
+            ),
+            // 语言设置
+            locale: const Locale('zh', 'CN'),
+            supportedLocales: const [Locale('zh', 'CN'), Locale('en', 'US')],
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
             ],
+            home: Builder(builder: (context) {
+              Toast.init(context); // 初始化toast
+              // 为触控球设置屏幕尺寸
+              TouchBallBinding.screenSize = MediaQuery.of(context).size;
+              return const MainPage();
+            }),
           ),
         );
       },
@@ -116,124 +127,153 @@ class _RestartableAppState extends State<RestartableApp> {
   }
 }
 
-// 1. 全局虚拟手势绑定
-class VirtualGesturesBinding extends WidgetsFlutterBinding {
-  static Offset _cursor = const Offset(400, 300);
-  static Offset get cursor => _cursor;
+// 触控球绑定
+class TouchBallBinding extends WidgetsFlutterBinding {
+  static Size screenSize = Size(3840, 2160);
+  static Offset _position = const Offset(-100, -100);
+  static Offset get cursor => _position;
 
-  static final _cursorNotifier = ValueNotifier<Offset>(_cursor);
-  static ValueListenable<Offset> get cursorListenable => _cursorNotifier;
+  static final _positionNotifier = ValueNotifier<Offset>(_position);
+  static ValueListenable<Offset> get positionNotifier => _positionNotifier;
 
   // 手势状态管理
-  static bool _isPointerDown = false;
+  static bool _isScrolling = false;
   static HitTestResult? _currentHit;
-  static int _pointerId = 1;
   static Offset? _lastPosition;
+  static final _pointerId = 1; // 添加唯一的指针ID
 
-  // 流畅移动相关
+  // 移动相关
   static bool _isMoving = false;
-  static Offset _targetPosition = const Offset(400, 300);
-  static Offset _velocity = Offset.zero;
   static Timer? _moveTimer;
-  static Timer? _stopTimer;
   static LogicalKeyboardKey? _currentDirection;
 
   // 移动参数
-  static const double _baseSpeed = 8.0;  // 基础速度
-  static const double _maxSpeed = 25.0;  // 最大速度
-  static const double _acceleration = 1.5; // 加速度
-  static const double _friction = 0.85;    // 摩擦力
-  static const int _frameRate = 60;        // 帧率
+  static const double _moveSpeed = 4.0; // 移动速度
+  static const int _frameRate = 120; // 帧率
 
   @override
   void initInstances() {
     super.initInstances();
     HardwareKeyboard.instance.addHandler(_handleKey);
-    print('VirtualGesturesBinding initialized');
   }
 
   bool _handleKey(KeyEvent event) {
-    const step = 10.0;
-
     // 处理select/enter键 - 模拟手势按下/松开
-    if (event.logicalKey == LogicalKeyboardKey.select || 
+    if (event.logicalKey == LogicalKeyboardKey.select ||
         event.logicalKey == LogicalKeyboardKey.enter) {
-      if (event is KeyDownEvent && !_isPointerDown) {
+      if (event is KeyDownEvent && !_isScrolling) {
         // 开始手势 - 相当于手指触摸屏幕
-        _startGesture(_cursor);
+        _startTouch(_position);
         return true;
-      } else if (event is KeyUpEvent && _isPointerDown) {
+      } else if (event is KeyUpEvent && _isScrolling) {
         // 结束手势 - 相当于手指离开屏幕
-        _endGesture();
+        _endTouch();
         return true;
       }
       return true;
     }
 
     // 处理方向键移动
-    if (event is KeyDownEvent || event is KeyRepeatEvent) {
-      Offset? newPosition;
+    LogicalKeyboardKey? direction;
+    switch (event.logicalKey) {
+      case LogicalKeyboardKey.arrowUp:
+      case LogicalKeyboardKey.arrowDown:
+      case LogicalKeyboardKey.arrowLeft:
+      case LogicalKeyboardKey.arrowRight:
+        direction = event.logicalKey;
+        break;
+      default:
+        return false;
+    }
 
-      switch (event.logicalKey) {
-        case LogicalKeyboardKey.arrowUp:
-          newPosition = Offset(_cursor.dx, (_cursor.dy - step).clamp(0, 1e9));
-          break;
-        case LogicalKeyboardKey.arrowDown:
-          newPosition = Offset(_cursor.dx, (_cursor.dy + step).clamp(0, 1e9));
-          break;
-        case LogicalKeyboardKey.arrowLeft:
-          newPosition = Offset((_cursor.dx - step).clamp(0, 1e9), _cursor.dy);
-          break;
-        case LogicalKeyboardKey.arrowRight:
-          newPosition = Offset((_cursor.dx + step).clamp(0, 1e9), _cursor.dy);
-          break;
-        default:
-          return false;
-      }
-
-      if (newPosition != null) {
-        _updateCursor(newPosition);
-        return true;
-      }
+    if (event is KeyDownEvent) {
+      // 按键按下 - 开始流畅移动
+      _starthMove(direction);
+      return true;
+    } else if (event is KeyUpEvent) {
+      // 按键松开 - 停止该方向的移动
+      _stopMove(direction);
+      return true;
     }
 
     return false;
   }
 
-  void _startGesture(Offset position) {
-    print('开始手势：PointerDown at $position');
-    _isPointerDown = true;
-    _lastPosition = position;
-
-    // 执行命中测试
-    _currentHit = HitTestResult();
-    RendererBinding.instance.hitTest(_currentHit!, position);
-
-    // 创建并分发PointerDown事件
-    final down = PointerDownEvent(
-      // pointerId: _pointerId,
-      position: position,
-      timeStamp: Duration(milliseconds: DateTime.now().millisecondsSinceEpoch),
-      kind: PointerDeviceKind.touch,
-    );
-
-    RendererBinding.instance.dispatchEvent(down, _currentHit!);
-    GestureBinding.instance.handlePointerEvent(down);
+  void _starthMove(LogicalKeyboardKey direction) {
+    _currentDirection = direction;
+    if (!_isMoving) {
+      _isMoving = true;
+      _startMoveAnimation();
+    }
   }
 
-  void _updateCursor(Offset newPosition) {
-    _cursor = newPosition;
-    _notifyCursorMoved();
+  void _stopMove(LogicalKeyboardKey direction) {
+    // 只有当前方向键松开时才停止
+    if (_currentDirection == direction) {
+      _isMoving = false;
+      _currentDirection = null;
+      _moveTimer?.cancel();
+      _clampPosition();
+    }
+  }
 
-    // 如果正在进行手势，发送PointerMove事件（拖拽）
-    if (_isPointerDown && _currentHit != null && _lastPosition != null) {
-      print('手势拖拽：PointerMove from $_lastPosition to $newPosition');
+  void _clampPosition() {
+    if (_isScrolling) return;
+    _position = Offset(
+      _position.dx.clamp(0, screenSize.width),
+      _position.dy.clamp(0, screenSize.height),
+    );
+    _notifyMoved();
+  }
 
+  Offset _getDirectionVector(LogicalKeyboardKey direction) {
+    switch (direction) {
+      case LogicalKeyboardKey.arrowUp:
+        return const Offset(0, -1);
+      case LogicalKeyboardKey.arrowDown:
+        return const Offset(0, 1);
+      case LogicalKeyboardKey.arrowLeft:
+        return const Offset(-1, 0);
+      case LogicalKeyboardKey.arrowRight:
+        return const Offset(1, 0);
+      default:
+        return Offset.zero;
+    }
+  }
+
+  void _startMoveAnimation() {
+    _moveTimer?.cancel();
+    _moveTimer =
+        Timer.periodic(Duration(milliseconds: 1000 ~/ _frameRate), (timer) {
+      if (!_isMoving) {
+        timer.cancel();
+        return;
+      }
+      _updatePisation();
+    });
+  }
+
+  void _updatePisation() {
+    if (!_isMoving || _currentDirection == null) {
+      return;
+    }
+    // 根据方向计算新位置
+    final direction = _getDirectionVector(_currentDirection!);
+    final newPosition = Offset(
+      (_position.dx + direction.dx * _moveSpeed),
+      (_position.dy + direction.dy * _moveSpeed),
+    );
+    _position = newPosition;
+    _notifyMoved();
+
+    // 如果正在进行手势，发送拖拽事件
+    if (_isScrolling && _currentHit != null && _lastPosition != null) {
       final move = PointerMoveEvent(
-        // pointerId: _pointerId,
+        pointer: _pointerId,
         position: newPosition,
         delta: newPosition - _lastPosition!,
-        timeStamp: Duration(milliseconds: DateTime.now().millisecondsSinceEpoch),
+        timeStamp:
+            Duration(milliseconds: DateTime.now().millisecondsSinceEpoch),
         kind: PointerDeviceKind.touch,
       );
 
@@ -243,29 +283,47 @@ class VirtualGesturesBinding extends WidgetsFlutterBinding {
     }
   }
 
-  void _endGesture() {
-    if (!_isPointerDown || _currentHit == null) return;
+  void _startTouch(Offset position) {
+    print('开始手势：PointerDown at $position');
+    _isScrolling = true;
+    _lastPosition = position;
 
-    print('结束手势：PointerUp at $_cursor');
+    // 执行命中测试
+    _currentHit = HitTestResult();
+    RendererBinding.instance.hitTest(_currentHit!, position);
 
-    final up = PointerUpEvent(
-      // pointerId: _pointerId,
-      position: _cursor,
+    // 创建并分发PointerDown事件
+    final down = PointerDownEvent(
+      pointer: _pointerId,
+      position: position,
       timeStamp: Duration(milliseconds: DateTime.now().millisecondsSinceEpoch),
       kind: PointerDeviceKind.touch,
     );
 
-    RendererBinding.instance.dispatchEvent(up, _currentHit!);
-    GestureBinding.instance.handlePointerEvent(up);
-
-    // 重置状态
-    _isPointerDown = false;
-    _currentHit = null;
-    _lastPosition = null;
-    _pointerId++; // 为下次手势使用新的指针ID
+    RendererBinding.instance.dispatchEvent(down, _currentHit!);
+    GestureBinding.instance.handlePointerEvent(down);
   }
 
-  void _notifyCursorMoved() {
-    _cursorNotifier.value = _cursor;
+  void _endTouch() {
+    if (!_isScrolling || _currentHit == null) return;
+    print('结束手势：PointerUp at $_position');
+    final up = PointerUpEvent(
+      pointer: _pointerId,
+      position: _position,
+      timeStamp: Duration(milliseconds: DateTime.now().millisecondsSinceEpoch),
+      kind: PointerDeviceKind.touch,
+    );
+    RendererBinding.instance.dispatchEvent(up, _currentHit!);
+    GestureBinding.instance.handlePointerEvent(up);
+    // 重置状态
+    _isScrolling = false;
+    _currentHit = null;
+    _lastPosition = null;
+    // 限制小球位置在屏幕范围内
+    _clampPosition();
+  }
+
+  void _notifyMoved() {
+    _positionNotifier.value = _position;
   }
 }

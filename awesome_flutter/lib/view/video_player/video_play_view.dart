@@ -67,18 +67,12 @@ class _VidioPlayViewState extends State<VidioPlayView> {
   }
 
   bool _onKeyEvent(KeyEvent event) {
-    print(event.logicalKey);
-    if (event is! KeyUpEvent) return false; // 只处理按键松开事件，返回false阻止事件传播
+    if (event is! KeyUpEvent) return true;
     switch (event.logicalKey) {
       case LogicalKeyboardKey.space:
         _togglePlay();
-        return false; // 阻止默认的确认行为
-      case LogicalKeyboardKey.select:
-        _toggleControls();
-        return false; // 阻止默认的确认行为
-      default:
-        return false; // 对于其他按键也返回false，让系统处理
     }
+    return true;
   }
 
   void _onControllerUpdated() {
@@ -197,7 +191,6 @@ class _VidioPlayViewState extends State<VidioPlayView> {
       widget.cntlr.seekTo(newPosition);
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
