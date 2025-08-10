@@ -1,10 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:fluttertoast/fluttertoast.dart' as f_toast;
 import 'package:window_manager/window_manager.dart';
@@ -12,6 +8,7 @@ import 'package:window_manager/window_manager.dart';
 import 'api/toast.dart';
 import 'api/local_storage.dart';
 import 'state/player_state.dart';
+import 'tool/touch_ball_binding.dart';
 import 'view/bottom_nav/main_page.dart';
 import 'view/settings/settings.dart';
 import 'view/mine/auth_provider.dart';
@@ -64,7 +61,7 @@ class _RestartableAppState extends State<RestartableApp> {
                   toastChild,
                   // 全局虚拟触控球
                   ValueListenableBuilder<Offset>(
-                    valueListenable: TouchBallBinding.positionNotifier,
+                    valueListenable: TouchBallBinding.positionNotifire,
                     builder: (_, offset, __) => Positioned(
                       left: offset.dx - 8,
                       top: offset.dy - 8,
@@ -124,206 +121,5 @@ class _RestartableAppState extends State<RestartableApp> {
         );
       },
     );
-  }
-}
-
-// 触控球绑定
-class TouchBallBinding extends WidgetsFlutterBinding {
-  static Size screenSize = Size(3840, 2160);
-  static Offset _position = const Offset(-100, -100);
-  static Offset get cursor => _position;
-
-  static final _positionNotifier = ValueNotifier<Offset>(_position);
-  static ValueListenable<Offset> get positionNotifier => _positionNotifier;
-
-  // 手势状态管理
-  static bool _isScrolling = false;
-  static HitTestResult? _currentHit;
-  static Offset? _lastPosition;
-  static final _pointerId = 1; // 添加唯一的指针ID
-
-  // 移动相关
-  static bool _isMoving = false;
-  static Timer? _moveTimer;
-  static LogicalKeyboardKey? _currentDirection;
-
-  // 移动参数
-  static const double _moveSpeed = 4.0; // 移动速度
-  static const int _frameRate = 120; // 帧率
-
-  @override
-  void initInstances() {
-    super.initInstances();
-    HardwareKeyboard.instance.addHandler(_handleKey);
-  }
-
-  bool _handleKey(KeyEvent event) {
-    // 处理select/enter键 - 模拟手势按下/松开
-    if (event.logicalKey == LogicalKeyboardKey.select ||
-        event.logicalKey == LogicalKeyboardKey.enter) {
-      if (event is KeyDownEvent && !_isScrolling) {
-        // 开始手势 - 相当于手指触摸屏幕
-        _startTouch(_position);
-        return true;
-      } else if (event is KeyUpEvent && _isScrolling) {
-        // 结束手势 - 相当于手指离开屏幕
-        _endTouch();
-        return true;
-      }
-      return true;
-    }
-
-    // 处理方向键移动
-    LogicalKeyboardKey? direction;
-    switch (event.logicalKey) {
-      case LogicalKeyboardKey.arrowUp:
-      case LogicalKeyboardKey.arrowDown:
-      case LogicalKeyboardKey.arrowLeft:
-      case LogicalKeyboardKey.arrowRight:
-        direction = event.logicalKey;
-        break;
-      default:
-        return false;
-    }
-
-    if (event is KeyDownEvent) {
-      // 按键按下 - 开始流畅移动
-      _starthMove(direction);
-      return true;
-    } else if (event is KeyUpEvent) {
-      // 按键松开 - 停止该方向的移动
-      _stopMove(direction);
-      return true;
-    }
-
-    return false;
-  }
-
-  void _starthMove(LogicalKeyboardKey direction) {
-    _currentDirection = direction;
-    if (!_isMoving) {
-      _isMoving = true;
-      _startMoveAnimation();
-    }
-  }
-
-  void _stopMove(LogicalKeyboardKey direction) {
-    // 只有当前方向键松开时才停止
-    if (_currentDirection == direction) {
-      _isMoving = false;
-      _currentDirection = null;
-      _moveTimer?.cancel();
-      _clampPosition();
-    }
-  }
-
-  void _clampPosition() {
-    if (_isScrolling) return;
-    _position = Offset(
-      _position.dx.clamp(0, screenSize.width),
-      _position.dy.clamp(0, screenSize.height),
-    );
-    _notifyMoved();
-  }
-
-  Offset _getDirectionVector(LogicalKeyboardKey direction) {
-    switch (direction) {
-      case LogicalKeyboardKey.arrowUp:
-        return const Offset(0, -1);
-      case LogicalKeyboardKey.arrowDown:
-        return const Offset(0, 1);
-      case LogicalKeyboardKey.arrowLeft:
-        return const Offset(-1, 0);
-      case LogicalKeyboardKey.arrowRight:
-        return const Offset(1, 0);
-      default:
-        return Offset.zero;
-    }
-  }
-
-  void _startMoveAnimation() {
-    _moveTimer?.cancel();
-    _moveTimer =
-        Timer.periodic(Duration(milliseconds: 1000 ~/ _frameRate), (timer) {
-      if (!_isMoving) {
-        timer.cancel();
-        return;
-      }
-      _updatePisation();
-    });
-  }
-
-  void _updatePisation() {
-    if (!_isMoving || _currentDirection == null) {
-      return;
-    }
-    // 根据方向计算新位置
-    final direction = _getDirectionVector(_currentDirection!);
-    final newPosition = Offset(
-      (_position.dx + direction.dx * _moveSpeed),
-      (_position.dy + direction.dy * _moveSpeed),
-    );
-    _position = newPosition;
-    _notifyMoved();
-
-    // 如果正在进行手势，发送拖拽事件
-    if (_isScrolling && _currentHit != null && _lastPosition != null) {
-      final move = PointerMoveEvent(
-        pointer: _pointerId,
-        position: newPosition,
-        delta: newPosition - _lastPosition!,
-        timeStamp:
-            Duration(milliseconds: DateTime.now().millisecondsSinceEpoch),
-        kind: PointerDeviceKind.touch,
-      );
-
-      RendererBinding.instance.dispatchEvent(move, _currentHit!);
-      GestureBinding.instance.handlePointerEvent(move);
-      _lastPosition = newPosition;
-    }
-  }
-
-  void _startTouch(Offset position) {
-    print('开始手势：PointerDown at $position');
-    _isScrolling = true;
-    _lastPosition = position;
-
-    // 执行命中测试
-    _currentHit = HitTestResult();
-    RendererBinding.instance.hitTest(_currentHit!, position);
-
-    // 创建并分发PointerDown事件
-    final down = PointerDownEvent(
-      pointer: _pointerId,
-      position: position,
-      timeStamp: Duration(milliseconds: DateTime.now().millisecondsSinceEpoch),
-      kind: PointerDeviceKind.touch,
-    );
-
-    RendererBinding.instance.dispatchEvent(down, _currentHit!);
-    GestureBinding.instance.handlePointerEvent(down);
-  }
-
-  void _endTouch() {
-    if (!_isScrolling || _currentHit == null) return;
-    print('结束手势：PointerUp at $_position');
-    final up = PointerUpEvent(
-      pointer: _pointerId,
-      position: _position,
-      timeStamp: Duration(milliseconds: DateTime.now().millisecondsSinceEpoch),
-      kind: PointerDeviceKind.touch,
-    );
-    RendererBinding.instance.dispatchEvent(up, _currentHit!);
-    GestureBinding.instance.handlePointerEvent(up);
-    // 重置状态
-    _isScrolling = false;
-    _currentHit = null;
-    _lastPosition = null;
-    // 限制小球位置在屏幕范围内
-    _clampPosition();
-  }
-
-  void _notifyMoved() {
-    _positionNotifier.value = _position;
   }
 }
