@@ -39,10 +39,10 @@ class PlayerState {
   /// 音量，初始为应用内播放器100%
   static double _volume = 1.0;
   static double get volume => _volume;
-  static void setVolume(
+  static Future<void> setVolume(
     double delta,
     VideoPlayerController cntlr,
-  ) {
+  ) async {
     _volume = (_volume + delta).clamp(0.0, 1.0);
     try {
       VolumeController.instance.setVolume(_volume);
@@ -65,7 +65,7 @@ class PlayerState {
   /// 屏幕亮度，初始为25%
   static double _brightness = 0.25;
   static double get brightness => _brightness;
-  static setBrightness(double delta) async {
+  static Future<void> setBrightness(double delta) async {
     _brightness = (_brightness + delta).clamp(0.0, 1.0);
     try {
       ScreenBrightness.instance.setApplicationScreenBrightness(_brightness);

@@ -6,7 +6,6 @@ class LocalStorage {
   LocalStorage._();
   static SharedPreferences? sp;
 
-  /// TODO 必须在运行软件前调用
   static initSP() async => sp = await SharedPreferences.getInstance();
 
   static Future<void> saveStringToJsonFile(String name, String string) async {

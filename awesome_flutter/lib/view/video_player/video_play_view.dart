@@ -29,32 +29,32 @@ class VidioPlayView extends StatefulWidget {
 }
 
 class _VidioPlayViewState extends State<VidioPlayView> {
-  bool _showControls = false;
+  bool _showCntlrHub = false;
   Timer? _controlsTimer;
   Duration _position = Duration.zero;
   bool _isPlaying = true;
   bool _isBuffering = true;
   bool _positionSetting = false; // 是否正在调整进度
-  bool _brightnessSetting = false; // 是否正在调整亮度
-  bool _volumeSetting = false; // 是否正在调整音量
+  bool _isSettingBrightness = false; // 是否正在调整亮度
+  bool _isSettingVolume = false; // 是否正在调整音量
   PointerDeviceKind? _tapKind; // 可以判断是鼠标还是触屏等
-  bool _dragLeft = false; // 用于判断左右
-  bool _longPressing = false; // 判断是否长按倍数播放
+  bool _isMultipleSpeed = false; // 判断是否长按倍数播放
   bool _isLock = false; // 是否锁定
 
   Future<void> _setBrightnessOrVolume(DragUpdateDetails details) async {
     final delta = -details.delta.dy * 0.01; // 调整灵敏度
-    if (_brightnessSetting) {
-      await PlayerState.setBrightness(delta);
-    } else if (_volumeSetting) {
-      PlayerState.setVolume(delta, widget.cntlr);
-    }
-    setState(() {}); // 更新UI显示当前亮度或音量
+    _isSettingBrightness
+        ? await PlayerState.setBrightness(delta)
+        : await PlayerState.setVolume(delta, widget.cntlr);
+    setState(() {
+      // 更新亮度或音量值
+    });
   }
 
   @override
   void initState() {
     super.initState();
+    HardwareKeyboard.instance.addHandler(_onKeyEvent);
     widget.cntlr.addListener(_onControllerUpdated);
   }
 
@@ -63,6 +63,22 @@ class _VidioPlayViewState extends State<VidioPlayView> {
     super.dispose();
     _controlsTimer?.cancel();
     widget.cntlr.removeListener(_onControllerUpdated);
+    HardwareKeyboard.instance.removeHandler(_onKeyEvent);
+  }
+
+  bool _onKeyEvent(KeyEvent event) {
+    print(event.logicalKey);
+    if (event is! KeyUpEvent) return false; // 只处理按键松开事件，返回false阻止事件传播
+    switch (event.logicalKey) {
+      case LogicalKeyboardKey.space:
+        _togglePlay();
+        return false; // 阻止默认的确认行为
+      case LogicalKeyboardKey.select:
+        _toggleControls();
+        return false; // 阻止默认的确认行为
+      default:
+        return false; // 对于其他按键也返回false，让系统处理
+    }
   }
 
   void _onControllerUpdated() {
@@ -102,7 +118,7 @@ class _VidioPlayViewState extends State<VidioPlayView> {
     try {
       windowManager.setFullScreen(true);
     } catch (e) {
-      // TODO 鸿蒙不支持
+      // TODO 鸿蒙PC全屏
       print(e);
     }
     if (widget.cntlr.value.aspectRatio > 1) {
@@ -114,6 +130,7 @@ class _VidioPlayViewState extends State<VidioPlayView> {
       // 设置状态栏全屏显示模式
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     }
+    // Scaffold包裹，防止样式异常
     context.push(Scaffold(
       body: VidioPlayView(
         title: widget.title,
@@ -140,15 +157,15 @@ class _VidioPlayViewState extends State<VidioPlayView> {
   void _toggleControls([bool? show]) {
     if (!mounted) return;
     setState(() {
-      _showControls = show ?? !_showControls;
+      _showCntlrHub = show ?? !_showCntlrHub;
     });
-
     _controlsTimer?.cancel();
-    if (_showControls) {
+    // 控制Hub显示5秒后自动隐藏
+    if (_showCntlrHub) {
       _controlsTimer = Timer(const Duration(seconds: 5), () {
         if (mounted) {
           setState(() {
-            _showControls = false;
+            _showCntlrHub = false;
           });
         }
       });
@@ -181,37 +198,25 @@ class _VidioPlayViewState extends State<VidioPlayView> {
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     // MouseRegion包裹在Stack外层，防止GestureDetector与_hub竞争监听
-    return PopScope(
-      canPop: !widget.isfullScreen,
-      // 重写返回按钮的行为
-      onPopInvokedWithResult: (didPop, result) {
-        if (!didPop) {
-          if (!_isLock) {
-            _exitFullScreen();
-          } else {
-            _toggleControls(true);
-          }
-        }
-      },
-      child: MouseRegion(
-        onEnter: _tapKind == PointerDeviceKind.mouse
-            ? (_) => _toggleControls(true)
-            : null,
-        onExit: _tapKind == PointerDeviceKind.mouse
-            ? (_) => _toggleControls(false)
-            : null,
-        onHover: _tapKind == PointerDeviceKind.mouse
-            ? (_) => _toggleControls(true)
-            : null,
-        child: ColoredBox(
-          color: Colors.black,
+    return ColoredBox(
+      color: Colors.black,
+      child: PopScope(
+        canPop: !widget.isfullScreen,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+          _isLock ? _toggleControls(true) : _exitFullScreen();
+        },
+        child: MouseRegion(
+          onEnter: (_) => _toggleControls(true),
+          onExit: (_) => _toggleControls(false),
+          onHover: (_) => _toggleControls(true),
           child: Stack(
             alignment: Alignment.center,
             children: [
-              // SizedBox.expand(), // 让Stack填满
               // 视频本身
               widget.cntlr.value.hasError
                   ? const Center(
@@ -228,55 +233,56 @@ class _VidioPlayViewState extends State<VidioPlayView> {
 
               _messageHub(), // 中间的提示信息
               // 注意GestureDetector的层级顺序
-              // 感觉就是放在控制Hub层的下一层
+              // 放在控制Hub层的下一层
               Padding(
-                // TODO 防止操作状态栏时误触，具体值未测试
+                // 防止操作状态栏时误触，具体值未测试
                 padding: const EdgeInsets.only(top: 50),
                 child: GestureDetector(
                   onTap: _tapKind == PointerDeviceKind.mouse
                       ? _togglePlay
                       : _toggleControls,
                   onLongPressStart: (_) {
+                    widget.cntlr.setPlaybackSpeed(2.0); // 设置倍速播放
                     setState(() {
-                      widget.cntlr.setPlaybackSpeed(2.0); // 设置倍速播放
-                      _longPressing = true;
+                      _isMultipleSpeed = true;
                     });
                   },
                   onLongPressEnd: (_) {
+                    widget.cntlr.setPlaybackSpeed(1.0); // 恢复正常速度
                     setState(() {
-                      widget.cntlr.setPlaybackSpeed(1.0); // 恢复正常速度
-                      _longPressing = false;
+                      _isMultipleSpeed = false;
                     });
                   },
-                  onTapDown: (details) {
-                    _tapKind = details.kind;
-                  },
+                  // 更新点击类型
+                  onTapDown: (details) => _tapKind = details.kind,
                   onDoubleTap: _tapKind == PointerDeviceKind.mouse
                       ? _toggleFullScreen
                       : _togglePlay,
+                  // 音量和亮度调整
                   onVerticalDragStart: (details) => setState(() {
-                    _dragLeft = details.localPosition.dx <
-                        MediaQuery.of(context).size.width / 2;
-                    _dragLeft
-                        ? _brightnessSetting = true
-                        : _volumeSetting = true;
-                  }),
-                  onVerticalDragEnd: (_) => setState(() {
-                    _brightnessSetting = false;
-                    _volumeSetting = false;
+                    // 左边亮度，右边音量
+                    details.localPosition.dx <
+                            MediaQuery.of(context).size.width / 2
+                        ? _isSettingBrightness = true
+                        : _isSettingVolume = true;
                   }),
                   onVerticalDragUpdate: _setBrightnessOrVolume,
+                  onVerticalDragEnd: (_) => setState(() {
+                    _isSettingBrightness = false;
+                    _isSettingVolume = false;
+                  }),
+                  // 进度调整
                   onHorizontalDragStart: (_) => setState(() {
                     _positionSetting = true;
                   }),
+                  onHorizontalDragUpdate: _setPosition,
                   onHorizontalDragEnd: (_) => setState(() {
                     _positionSetting = false;
                   }),
-                  onHorizontalDragUpdate: _setPosition,
                 ),
               ),
-              if (!_isLock && _showControls)
-                ..._hub() // 控制Hub
+              if (!_isLock && _showCntlrHub)
+                ...__unLockedHub() // 未锁定时的Hub
               else
                 // 底部细小进度条
                 Positioned(
@@ -291,32 +297,9 @@ class _VidioPlayViewState extends State<VidioPlayView> {
                     ),
                   ),
                 ),
-              if (_isLock) ...[
-                GestureDetector(
-                  onPanDown: (_) => _toggleControls(),
-                  child: Container(
-                    width: double.infinity,
-                    height: double.infinity,
-                    color: Colors.transparent,
-                  ),
-                ),
-                if (_showControls) ...[
-                  Positioned(
-                    left: 40,
-                    child: IconButton(
-                      icon: Icon(Icons.lock, color: Colors.white),
-                      onPressed: () => setState(() => _isLock = false),
-                    ),
-                  ),
-                  Positioned(
-                    right: 10,
-                    child: IconButton(
-                      icon: Icon(Icons.lock, color: Colors.white),
-                      onPressed: () => setState(() => _isLock = false),
-                    ),
-                  ),
-                ]
-              ]
+              // 锁定时的Hub，包含一个GestureDetector
+              // 挡住之前的GestureDetector监听，从而实现锁定功能
+              if (_isLock) ..._lockedHub()
             ],
           ),
         ),
@@ -326,11 +309,11 @@ class _VidioPlayViewState extends State<VidioPlayView> {
 
   Widget _messageHub() {
     String? centent;
-    if (_longPressing) {
+    if (_isMultipleSpeed) {
       centent = '倍数播放中';
-    } else if (_brightnessSetting) {
+    } else if (_isSettingBrightness) {
       centent = '亮度：${(PlayerState.brightness * 100).toInt()}%';
-    } else if (_volumeSetting) {
+    } else if (_isSettingVolume) {
       centent = '音量：${(PlayerState.volume * 100).toInt()}%';
     } else if (_positionSetting) {
       centent =
@@ -356,7 +339,7 @@ class _VidioPlayViewState extends State<VidioPlayView> {
     );
   }
 
-  List _hub() {
+  List<Widget> __unLockedHub() {
     return [
       // 顶部控制栏
       Positioned(
@@ -439,6 +422,35 @@ class _VidioPlayViewState extends State<VidioPlayView> {
           ),
         ),
       ),
+    ];
+  }
+
+  List<Widget> _lockedHub() {
+    return [
+      GestureDetector(
+        onPanDown: (_) => _toggleControls(),
+        child: Container(
+          width: double.infinity,
+          height: double.infinity,
+          color: Colors.transparent,
+        ),
+      ),
+      if (_showCntlrHub) ...[
+        Positioned(
+          left: 20,
+          child: IconButton(
+            icon: Icon(Icons.lock, color: Colors.white),
+            onPressed: () => setState(() => _isLock = false),
+          ),
+        ),
+        Positioned(
+          right: 10,
+          child: IconButton(
+            icon: Icon(Icons.lock, color: Colors.white),
+            onPressed: () => setState(() => _isLock = false),
+          ),
+        ),
+      ]
     ];
   }
 }

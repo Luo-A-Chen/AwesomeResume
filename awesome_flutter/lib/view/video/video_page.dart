@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import '../../api/nav_extension.dart';
 import '../comment/comment_view.dart';
-import 'video_play_view.dart';
+import '../video_player/video_play_view.dart';
 import 'info_view.dart';
 import 'video_response.dart';
 import 'video_urls.dart';
