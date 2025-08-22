@@ -1,52 +1,53 @@
 {
-  "app": {
-    "signingConfigs": [
+  app: {
+    signingConfigs: [
       {
         "name": "default",
-        "type": "HarmonyOS",
         "material": {
-          "certpath": "/Users/qshh/.ohos/config/default_ohos_jSFKdZ4wcxJ_RJ1f7xb0JsKaxwG8x9fm27IyHcXNezc=.cer",
+          "certpath": "/Users/qshh/.ohos/config/openharmony/default_ohos_p5-xxoLeN0I04PZlY6EWXvTASOP16ErS7cqYH6lHJxI=.cer",
           "keyAlias": "debugKey",
-          "keyPassword": "0000001B66572DA8BE7C48A7751AB0D029BA2A848BFAF6459B08649F5AA80043DE4C2713C5E931C23B7ACA",
-          "profile": "/Users/qshh/.ohos/config/default_ohos_jSFKdZ4wcxJ_RJ1f7xb0JsKaxwG8x9fm27IyHcXNezc=.p7b",
+          "keyPassword": "0000001B1BBCAC7C92A231946DEFCD73F4F8F59AA8E422DEFCEEE3C555B6D0D06C114A32DBA89FCCC44ADB",
+          "profile": "/Users/qshh/.ohos/config/openharmony/default_ohos_p5-xxoLeN0I04PZlY6EWXvTASOP16ErS7cqYH6lHJxI=.p7b",
           "signAlg": "SHA256withECDSA",
-          "storeFile": "/Users/qshh/.ohos/config/default_ohos_jSFKdZ4wcxJ_RJ1f7xb0JsKaxwG8x9fm27IyHcXNezc=.p12",
-          "storePassword": "0000001B1D511DC54104EF5A341E5F232917887CD85B0394B8F50D2F2A584A10163FE2DDF81AD4A5B58BB0"
+          "storeFile": "/Users/qshh/.ohos/config/openharmony/default_ohos_p5-xxoLeN0I04PZlY6EWXvTASOP16ErS7cqYH6lHJxI=.p12",
+          "storePassword": "0000001BEC7E7AFCCED326AD5B8AB7C18972AC4002CE1DBB46AE4AAA65D731C273EA67F6AE65C0266DE85E"
         }
       }
     ],
-    "products": [
+    products: [
       {
-        "name": "default",
-        "signingConfig": "default",
-        "compatibleSdkVersion": "5.0.3(15)",
-        "runtimeOS": "HarmonyOS"
-      }
+        name: "default",
+        signingConfig: "default",
+        compatibleSdkVersion: 12,
+        compileSdkVersion: 12,
+        targetSdkVersion: 12,
+        runtimeOS: "OpenHarmony",
+      },
     ],
-    "buildModeSet": [
+    buildModeSet: [
       {
-        "name": "debug"
+        name: "debug",
       },
       {
-        "name": "profile"
+        name: "profile",
       },
       {
-        "name": "release"
-      }
-    ]
+        name: "release",
+      },
+    ],
   },
-  "modules": [
+  modules: [
     {
-      "name": "entry",
-      "srcPath": "./entry",
-      "targets": [
+      name: "entry",
+      srcPath: "./entry",
+      targets: [
         {
-          "name": "default",
-          "applyToProducts": [
+          name: "default",
+          applyToProducts: [
             "default"
-          ]
-        }
-      ]
-    }
-  ]
+          ],
+        },
+      ],
+    },
+  ],
 }

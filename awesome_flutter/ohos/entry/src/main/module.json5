@@ -1,4 +1,3 @@
-
 {
   "module": {
     "name": "entry",
@@ -6,7 +5,8 @@
     "description": "$string:module_desc",
     "mainElement": "EntryAbility",
     "deviceTypes": [
-      "phone"
+      "default",
+      "tablet",
     ],
     "deliveryWithInstall": true,
     "installationFree": false,
@@ -34,7 +34,9 @@
       }
     ],
     "requestPermissions": [
-      {"name" :  "ohos.permission.INTERNET"},
+      {
+        "name": "ohos.permission.INTERNET"
+      }
     ]
   }
 }
