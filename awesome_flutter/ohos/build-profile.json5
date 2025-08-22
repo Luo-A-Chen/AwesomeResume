@@ -2,25 +2,24 @@
   app: {
     signingConfigs: [
       {
-        "name": "default",
-        "material": {
-          "certpath": "/Users/qshh/.ohos/config/openharmony/default_ohos_p5-xxoLeN0I04PZlY6EWXvTASOP16ErS7cqYH6lHJxI=.cer",
-          "keyAlias": "debugKey",
-          "keyPassword": "0000001B1BBCAC7C92A231946DEFCD73F4F8F59AA8E422DEFCEEE3C555B6D0D06C114A32DBA89FCCC44ADB",
-          "profile": "/Users/qshh/.ohos/config/openharmony/default_ohos_p5-xxoLeN0I04PZlY6EWXvTASOP16ErS7cqYH6lHJxI=.p7b",
-          "signAlg": "SHA256withECDSA",
-          "storeFile": "/Users/qshh/.ohos/config/openharmony/default_ohos_p5-xxoLeN0I04PZlY6EWXvTASOP16ErS7cqYH6lHJxI=.p12",
-          "storePassword": "0000001BEC7E7AFCCED326AD5B8AB7C18972AC4002CE1DBB46AE4AAA65D731C273EA67F6AE65C0266DE85E"
-        }
-      }
+        name: "default",
+        material: {
+          certpath: "/Users/qshh/.ohos/config/openharmony/default_ohos_p5-xxoLeN0I04PZlY6EWXvTASOP16ErS7cqYH6lHJxI=.cer",
+          keyAlias: "debugKey",
+          keyPassword: "0000001B1BBCAC7C92A231946DEFCD73F4F8F59AA8E422DEFCEEE3C555B6D0D06C114A32DBA89FCCC44ADB",
+          profile: "/Users/qshh/.ohos/config/openharmony/default_ohos_p5-xxoLeN0I04PZlY6EWXvTASOP16ErS7cqYH6lHJxI=.p7b",
+          signAlg: "SHA256withECDSA",
+          storeFile: "/Users/qshh/.ohos/config/openharmony/default_ohos_p5-xxoLeN0I04PZlY6EWXvTASOP16ErS7cqYH6lHJxI=.p12",
+          storePassword: "0000001BEC7E7AFCCED326AD5B8AB7C18972AC4002CE1DBB46AE4AAA65D731C273EA67F6AE65C0266DE85E",
+        },
+      },
     ],
     products: [
       {
         name: "default",
         signingConfig: "default",
-        compatibleSdkVersion: 12,
-        compileSdkVersion: 12,
-        targetSdkVersion: 12,
+        compatibleSdkVersion: 15,
+        compileSdkVersion: 15,
         runtimeOS: "OpenHarmony",
       },
     ],
@@ -43,9 +42,7 @@
       targets: [
         {
           name: "default",
-          applyToProducts: [
-            "default"
-          ],
+          applyToProducts: ["default"],
         },
       ],
     },
