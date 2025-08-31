@@ -1,4 +1,3 @@
-
 {
   "apiType": 'stageMode',
   "buildOption": {
@@ -6,7 +5,8 @@
   "targets": [
     {
       "name": "default",
-      "runtimeOS": "OpenHarmony"
+      //      "runtimeOS": "OpenHarmony"
+      "runtimeOS": "HarmonyOS"
     },
     {
       "name": "ohosTest",

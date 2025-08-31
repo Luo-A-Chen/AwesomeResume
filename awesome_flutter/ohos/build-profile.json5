@@ -18,9 +18,11 @@
       {
         name: "default",
         signingConfig: "default",
-        compatibleSdkVersion: 18,
-        compileSdkVersion: 18,
-        runtimeOS: "OpenHarmony"
+        //        compatibleSdkVersion: 18,
+        //        compileSdkVersion: 18,
+        //        runtimeOS: "OpenHarmony",
+        "compatibleSdkVersion": "5.0.2(14)",
+        "runtimeOS": "HarmonyOS"
       },
     ],
     buildModeSet: [
