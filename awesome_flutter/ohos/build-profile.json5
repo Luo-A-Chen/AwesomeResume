@@ -1,54 +1,55 @@
 {
-  app: {
-    signingConfigs: [
+  "app": {
+    "signingConfigs": [
       {
-        name: "default",
-        material: {
-          certpath: "/Users/qshh/.ohos/config/openharmony/default_ohos_p5-xxoLeN0I04PZlY6EWXvTASOP16ErS7cqYH6lHJxI=.cer",
-          keyAlias: "debugKey",
-          keyPassword: "0000001B1BBCAC7C92A231946DEFCD73F4F8F59AA8E422DEFCEEE3C555B6D0D06C114A32DBA89FCCC44ADB",
-          profile: "/Users/qshh/.ohos/config/openharmony/default_ohos_p5-xxoLeN0I04PZlY6EWXvTASOP16ErS7cqYH6lHJxI=.p7b",
-          signAlg: "SHA256withECDSA",
-          storeFile: "/Users/qshh/.ohos/config/openharmony/default_ohos_p5-xxoLeN0I04PZlY6EWXvTASOP16ErS7cqYH6lHJxI=.p12",
-          storePassword: "0000001BEC7E7AFCCED326AD5B8AB7C18972AC4002CE1DBB46AE4AAA65D731C273EA67F6AE65C0266DE85E",
-        },
-      },
+        "name": "default",
+        "material": {
+          "certpath": "/Users/qshh/.ohos/config/openharmony/default_ohos_fpP85n29wO_4EqSx2CbI98h_mzKiUKAlRMdEyvfBpVc=.cer",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001B3242B6A74E450AB4BC9728854EEB066C4E5476B139091209FB798CF63A950C684A39D3D96E545D",
+          "profile": "/Users/qshh/.ohos/config/openharmony/default_ohos_fpP85n29wO_4EqSx2CbI98h_mzKiUKAlRMdEyvfBpVc=.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "/Users/qshh/.ohos/config/openharmony/default_ohos_fpP85n29wO_4EqSx2CbI98h_mzKiUKAlRMdEyvfBpVc=.p12",
+          "storePassword": "0000001B1911A42C4164F38344C3D6907DF50787ECA375CA2EC702185F5F199947C4DAEAADBF7E73EDEF8D"
+        }
+      }
     ],
-    products: [
+    "products": [
       {
-        name: "default",
-        signingConfig: "default",
-        //        compatibleSdkVersion: 18,
-        //        compileSdkVersion: 18,
-        //        runtimeOS: "OpenHarmony",
-        "compatibleSdkVersion": "5.0.2(14)",
-        "runtimeOS": "HarmonyOS"
-      },
+        "name": "default",
+        "signingConfig": "default",
+        compatibleSdkVersion: 12,
+        compileSdkVersion: 18,
+        runtimeOS: "OpenHarmony"
+        //        "compatibleSdkVersion": "5.0.5(17)",
+        //        "runtimeOS": "HarmonyOS",
+        //        "targetSdkVersion": "5.1.0(18)"
+      }
     ],
-    buildModeSet: [
+    "buildModeSet": [
       {
-        name: "debug",
+        "name": "debug"
       },
       {
-        name: "profile",
+        "name": "profile"
       },
       {
-        name: "release",
-      },
-    ],
+        "name": "release"
+      }
+    ]
   },
-  modules: [
+  "modules": [
     {
-      name: "entry",
-      srcPath: "./entry",
-      targets: [
+      "name": "entry",
+      "srcPath": "./entry",
+      "targets": [
         {
-          name: "default",
-          applyToProducts: [
+          "name": "default",
+          "applyToProducts": [
             "default"
-          ],
-        },
-      ],
-    },
-  ],
+          ]
+        }
+      ]
+    }
+  ]
 }

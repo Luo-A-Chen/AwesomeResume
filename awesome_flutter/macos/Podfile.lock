@@ -53,7 +53,7 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/window_manager/macos
 
 SPEC CHECKSUMS:
-  FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
+  FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
   screen_brightness_macos: 2a3ee243f8051c340381e8e51bcedced8360f421
   screen_retriever_macos: 452e51764a9e1cdb74b3c541238795849f21557f
@@ -63,6 +63,6 @@ SPEC CHECKSUMS:
   volume_controller: 5c068e6d085c80dadd33fc2c918d2114b775b3dd
   window_manager: b729e31d38fb04905235df9ea896128991cad99e
 
-PODFILE CHECKSUM: 7eb978b976557c8c1cd717d8185ec483fd090a82
+PODFILE CHECKSUM: 54d867c82ac51cbd61b565781b9fada492027009
 
 COCOAPODS: 1.16.2
